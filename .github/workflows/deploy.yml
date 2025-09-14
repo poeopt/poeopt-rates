@@ -2,8 +2,8 @@ name: Build & Publish rates.json
 
 on:
   schedule:
-    - cron: "*/5 * * * *"     # каждые 5 минут
-  workflow_dispatch: {}        # запуск вручную
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -15,7 +15,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
@@ -25,7 +25,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          # cache: "npm"    # <-- УБРАЛИ кэш, чтобы не требовал lock-файл
 
       - name: Install deps (+ Chromium для Playwright)
         run: |
@@ -33,7 +32,15 @@ jobs:
           npx playwright install --with-deps chromium
 
       - name: Build rates.json
-        run: npm run build   # запускает scripts/build.js
+        run: npm run build
+
+      # DEBUG: выгружаем снимки страниц, если были
+      - name: Upload debug artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug
+          path: debug/**
 
       - name: Add index.html (viewer для корня)
         run: |
