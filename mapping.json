@@ -1,76 +1,32 @@
 {
-  "games": {
-    "poe1": { "name_ru": "Path of Exile 1" },
-    "poe2": { "name_ru": "Path of Exile 2" },
-    "tli":  { "name_ru": "Torchlight: Infinite" },
-    "le":   { "name_ru": "Last Epoch" }
-  },
   "pairs": [
+    {
+      "key": "le:gold",
+      "game": "le",
+      "currency": "gold",
+      "min_qty": 1,
+      "funpay_url": "https://funpay.com/chips/200/"
+    },
+    {
+      "key": "tli:flame-elementium",
+      "game": "tli",
+      "currency": "flame-elementium",
+      "min_qty": 1,
+      "funpay_url": "https://funpay.com/chips/177/"
+    },
     {
       "key": "poe2:divine-orb",
       "game": "poe2",
       "currency": "divine-orb",
-      "name_ru": "Божественная сфера",
-      "league": "Rise of the Abyssal",
-      "server": "PC Mercenaries",
-      "unit": "orb",
-      "min_qty": 10,
+      "min_qty": 1,
       "funpay_url": "https://funpay.com/chips/209/"
     },
     {
       "key": "poe1:divine-orb",
       "game": "poe1",
       "currency": "divine-orb",
-      "name_ru": "Божественная сфера",
-      "league": "Текущая лига (PC)",
-      "server": "PC",
-      "unit": "orb",
-      "min_qty": 10,
-      "funpay_url": "https://funpay.com/chips/173/"
-    },
-    {
-      "key": "poe1:chaos-orb",
-      "game": "poe1",
-      "currency": "chaos-orb",
-      "name_ru": "Сфера хаоса",
-      "league": "Текущая лига (PC)",
-      "server": "PC",
-      "unit": "orb",
-      "min_qty": 100,
-      "funpay_url": "https://funpay.com/chips/76/"
-    },
-    {
-      "key": "poe1:exalted-orb",
-      "game": "poe1",
-      "currency": "exalted-orb",
-      "name_ru": "Возвышающая сфера",
-      "league": "Текущая лига (PC)",
-      "server": "PC",
-      "unit": "orb",
-      "min_qty": 10,
-      "funpay_url": "https://funpay.com/chips/16/"
-    },
-    {
-      "key": "tli:flame-elementium",
-      "game": "tli",
-      "currency": "flame-elementium",
-      "name_ru": "Flame Elementium",
-      "league": "Актуальный сезон",
-      "server": "EU/NA",
-      "unit": "FE",
       "min_qty": 1,
-      "funpay_url": "https://funpay.com/chips/177/"
-    },
-    {
-      "key": "le:gold",
-      "game": "le",
-      "currency": "gold",
-      "name_ru": "Золото",
-      "league": "Актуальная версия",
-      "server": "PC",
-      "unit": "gold",
-      "min_qty": 100000,
-      "funpay_url": "https://funpay.com/chips/200/"
+      "funpay_url": "https://funpay.com/chips/173/"
     }
   ]
 }
