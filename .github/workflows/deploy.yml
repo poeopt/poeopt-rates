@@ -1,16 +1,16 @@
 name: Build & Publish rates.json
 
 on:
-  schedule:
-    - cron:  "*/5 * * * *"
   workflow_dispatch:
-
-permissions:
-  contents: write
+  schedule:
+    - cron: "*/15 * * * *"  # каждые 15 минут
 
 concurrency:
   group: rates-build
   cancel-in-progress: true
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -24,32 +24,18 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "20"
 
       - name: Install deps (+ Chromium для Playwright)
         run: |
-          npm ci || npm i --no-audit --no-fund
+          npm ci
           npx playwright install --with-deps chromium
 
       - name: Build rates.json
         run: npm run build
 
-      - name: Add index.html (viewer для корня)
-        run: |
-          mkdir -p dist
-          cat > dist/index.html <<'HTML'
-          <!doctype html>
-          <meta charset="utf-8">
-          <title>poeopt-rates</title>
-          <style>
-            body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#111;color:#ddd;padding:24px}
-            a{color:#8ab4f8}
-          </style>
-          <h1>poeopt-rates</h1>
-          <p>Данные: <a href="./rates.json">rates.json</a></p>
-          HTML
-
       - name: Upload debug artifacts (if any)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: debug
@@ -60,6 +46,7 @@ jobs:
       - name: Publish to gh-pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           branch: gh-pages
           folder: dist
           clean: true
