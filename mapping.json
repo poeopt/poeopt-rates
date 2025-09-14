@@ -1,30 +1,30 @@
 [
   {
-    "key": "le:gold",
-    "game": "le",
-    "currency": "gold",
-    "funpay_url": "https://funpay.com/chips/200/",
-    "min_qty": 1
-  },
-  {
-    "key": "tli:flame-elementium",
-    "game": "tli",
-    "currency": "flame-elementium",
-    "funpay_url": "https://funpay.com/chips/177/",
-    "min_qty": 1
-  },
-  {
     "key": "poe2:divine-orb",
     "game": "poe2",
     "currency": "divine-orb",
-    "funpay_url": "https://funpay.com/chips/209/",
-    "min_qty": 1
+    "name_ru": "Божественные сферы (PoE2)",
+    "url": "https://funpay.com/chips/209/"
   },
   {
     "key": "poe1:divine-orb",
     "game": "poe1",
     "currency": "divine-orb",
-    "funpay_url": "https://funpay.com/chips/173/",
-    "min_qty": 1
+    "name_ru": "Божественные сферы (PoE1)",
+    "url": "https://funpay.com/chips/173/"
+  },
+  {
+    "key": "tli:flame-elementium",
+    "game": "tli",
+    "currency": "flame-elementium",
+    "name_ru": "Flame Elementium (Torchlight: Infinite)",
+    "url": "https://funpay.com/chips/177/"
+  },
+  {
+    "key": "le:gold",
+    "game": "le",
+    "currency": "gold",
+    "name_ru": "Золото (Last Epoch)",
+    "url": "https://funpay.com/chips/200/"
   }
 ]
