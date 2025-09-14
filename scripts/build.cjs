@@ -1,143 +1,140 @@
 // scripts/build.cjs
-const fs = require('fs/promises');
+const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
 
 const ROOT = process.cwd();
+const MAP_PATH = path.join(ROOT, 'mapping.json');
 const OUT_DIR = path.join(ROOT, 'dist');
-const DEBUG_DIR = path.join(ROOT, 'debug');
-const MAPPING_PATH = path.join(ROOT, 'mapping.json');
+const OUT_PATH = path.join(OUT_DIR, 'rates.json');
 
-function toNum(s) {
-  if (!s) return null;
-  return Number(
-    s.toString()
-      .replace(/\s+/g, '')
-      .replace(',', '.')
-      .replace(/[^\d.]/g, '')
-  );
-}
+// утилиты
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const nowIso = () => new Date().toISOString();
 
-async function ensureDir(dir) {
-  await fs.mkdir(dir, { recursive: true });
-}
-
-async function loadMapping() {
-  const raw = await fs.readFile(MAPPING_PATH, 'utf-8');
-  const data = JSON.parse(raw);
-  if (!Array.isArray(data)) throw new Error('mapping.json должен быть массивом объектов');
+function readMapping() {
+  const raw = fs.readFileSync(MAP_PATH, 'utf8');
+  let data;
+  try { data = JSON.parse(raw); } catch (e) {
+    throw new Error('mapping.json не валиден как JSON');
+  }
+  if (!Array.isArray(data)) {
+    throw new Error('mapping.json должен быть массивом объектов');
+  }
   return data;
 }
 
-async function scrapeFunpayPage(browser, key, url) {
+function parsePriceRUB(text) {
+  // Примеры: "0.99 ₽", "23.02 ₽", "69,04 ₽"
+  if (!text) return null;
+  const m = text.replace(/\s/g, '').match(/([\d.,]+)₽/i);
+  if (!m) return null;
+  const num = m[1].replace(',', '.');
+  const v = Number(num);
+  return Number.isFinite(v) ? v : null;
+}
+
+async function scrapeFunpayPage(browser, url) {
   const page = await browser.newPage({
     userAgent:
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36',
-    viewport: { width: 1366, height: 900 },
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
   });
-
-  const safeKey = key.replace(/[^a-z0-9_-]+/gi, '_');
-
-  await page.route('**/*', (route) => {
-    const req = route.request();
-    if (/\.(png|jpg|jpeg|gif|webp|svg|woff2?|ttf|eot)$/i.test(req.url())) {
-      return route.abort();
-    }
-    route.continue();
-  });
-
-  console.log('[NAVIGATE]', key, url);
-  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
-
-  await page.waitForTimeout(800);
-  await page.mouse.move(200, 200);
-  await page.waitForTimeout(400);
-
   try {
-    await page.waitForFunction(
-      () => document.body && document.body.innerText && document.body.innerText.includes('₽'),
-      { timeout: 20000 }
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 120000 });
+    // чуть-чуть ждём, т.к. у FunPay часть таблицы дорисовывается
+    await sleep(1500);
+
+    // Берём все строки основной таблицы (первый листинг)
+    const rows = await page.$$(
+      'table tbody tr'
     );
-  } catch (_) {}
 
-  await ensureDir(DEBUG_DIR);
-  await fs.writeFile(path.join(DEBUG_DIR, `${safeKey}__page.html`), await page.content(), 'utf-8');
-  await page.screenshot({ path: path.join(DEBUG_DIR, `${safeKey}__page.png`), fullPage: true });
+    const prices = [];
+    for (const row of rows) {
+      // в последней/ценовой колонке встречается "Цена ₽"
+      const priceCell = await row.$(':scope td:last-child, :scope td .tc:last-child');
+      const txt = priceCell ? (await priceCell.textContent())?.trim() : '';
+      const price = parsePriceRUB(txt || '');
+      if (price !== null) prices.push(price);
+      if (prices.length >= 5) break;
+    }
 
-  const prices = await page.evaluate(() => {
-    const text = document.body?.innerText || '';
-    const matches = Array.from(text.matchAll(/(\d[\d\s]*[.,]\d+)\s*₽/g)).map((m) =>
-      m[1].replace(/\s+/g, '').replace(',', '.')
-    );
-    return matches.slice(0, 10);
-  });
+    // иногда вёрстка другая — пробуем альтернативный селектор цены
+    if (prices.length === 0) {
+      const altPrices = await page.$$(':text("₽")');
+      for (const el of altPrices) {
+        const t = (await el.textContent())?.trim() || '';
+        const p = parsePriceRUB(t);
+        if (p !== null) prices.push(p);
+        if (prices.length >= 5) break;
+      }
+    }
 
-  const pNums = prices.map(toNum).filter((n) => Number.isFinite(n));
-  const top5 = pNums.slice(0, 5);
-  await page.close();
+    // если совсем ничего не нашли — возвращаем пусто
+    if (prices.length === 0) {
+      return { price_RUB: 0, trades_top5: [] };
+    }
 
-  const trades_top5 = top5.map((p) => ({ row_text: `${p} ₽`, price_RUB: p }));
-  const price_RUB =
-    top5.length > 0 ? Math.round((top5.reduce((a, b) => a + b, 0) / top5.length) * 100) / 100 : 0;
+    // считаем VWAP (по факту — просто среднее по топ-5 ценам,
+    // так как объём не виден без доп.кликов/скролла)
+    const avg =
+      prices.reduce((a, b) => a + b, 0) / prices.length;
 
-  return {
-    price_RUB,
-    change_24h: null,
-    change_7d: null,
-    updated_at: new Date().toISOString(),
-    trades_top5: trades_top5,
-  };
+    return {
+      price_RUB: Number(avg.toFixed(2)),
+      trades_top5: prices.map((p) => ({ price_RUB: p }))
+    };
+  } finally {
+    await page.close().catch(() => {});
+  }
 }
 
 async function main() {
-  await ensureDir(OUT_DIR);
-  await ensureDir(DEBUG_DIR);
+  const mapping = readMapping();
 
-  const mapping = await loadMapping();
+  if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
 
   const browser = await chromium.launch({ headless: true });
   const pairs = {};
-  const result = {
-    updated_at: new Date().toISOString(),
-    source: 'funpay',
-    pairs,
-  };
 
-  for (const item of mapping) {
-    const key = item.key || `${item.game}:${item.currency}`;
-    const url = item.funpay_url || item.funpayUri || item.url;
-    if (!url) {
-      console.warn('[SKIP] Нет funpay_url для', key);
-      continue;
-    }
-    try {
-      const parsed = await scrapeFunpayPage(browser, key, url);
+  try {
+    for (const item of mapping) {
+      const key = item.key;
+      if (!key || !item.funpay_url) {
+        console.log(`Пропускаю элемент без key/url:`, item);
+        continue;
+      }
+      console.log(`→ Скрейплю: ${key}  ${item.funpay_url}`);
+
+      let result = { price_RUB: 0, trades_top5: [] };
+      try {
+        result = await scrapeFunpayPage(browser, item.funpay_url);
+      } catch (e) {
+        console.warn(`   Ошибка скрейпа для ${key}:`, e.message);
+      }
+
       pairs[key] = {
         game: item.game || null,
         currency: item.currency || null,
-        ...parsed,
-      };
-      console.log('[OK]', key, pairs[key].price_RUB, 'руб.');
-    } catch (e) {
-      console.error('[FAIL]', key, e.message);
-      pairs[key] = {
-        game: item.game || null,
-        currency: item.currency || null,
-        price_RUB: 0,
+        price_RUB: result.price_RUB || 0,
         change_24h: null,
         change_7d: null,
-        updated_at: new Date().toISOString(),
-        trades_top5: [],
-        _error: String(e && e.message ? e.message : e),
+        updated_at: nowIso(),
+        trades_top5: result.trades_top5 || []
       };
     }
+
+    const out = {
+      updated_at: nowIso(),
+      source: "funpay",
+      pairs
+    };
+
+    fs.writeFileSync(OUT_PATH, JSON.stringify(out, null, 2), 'utf8');
+    console.log('✔ rates.json сохранён:', OUT_PATH);
+  } finally {
+    await browser.close().catch(() => {});
   }
-
-  await browser.close();
-
-  const outPath = path.join(OUT_DIR, 'rates.json');
-  await fs.writeFile(outPath, JSON.stringify(result, null, 2), 'utf-8');
-  console.log('[WRITE]', outPath);
 }
 
 main().catch((e) => {
