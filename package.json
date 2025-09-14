@@ -1,11 +1,12 @@
 {
   "name": "poeopt-rates",
-  "private": false,
-  "type": "module",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Headless Chromium scraper for FunPay -> rates.json",
   "scripts": {
-    "build": "node scripts/build.js"
+    "build": "node scripts/build.cjs"
   },
   "dependencies": {
-    "playwright": "^1.47.0"
+    "playwright": "^1.47.2"
   }
 }
