@@ -8,6 +8,11 @@ const NOW = () => new Date().toISOString();
 const TOP_N = 5;
 const DEBUG_DIR = "debug";
 
+// === NEW: безопасное имя для файлов/папок (убираем : * ? " < > | \ /) ===
+function fsSafe(s) {
+  return String(s).replace(/[:*?"<>|\\/]/g, "_");
+}
+
 function toFloat(text) {
   if (!text) return 0;
   const s = String(text)
@@ -36,11 +41,14 @@ async function ensureDir(p) {
   await fs.mkdir(p, { recursive: true });
 }
 
+// === изменено: сохраняем в debug/<safeKey>/... ===
 async function saveDebug(page, key) {
-  await ensureDir(path.join(DEBUG_DIR, key));
-  await fs.writeFile(path.join(DEBUG_DIR, key, "page.html"), await page.content(), "utf-8");
+  const safeKey = fsSafe(key);
+  const dir = path.join(DEBUG_DIR, safeKey);
+  await ensureDir(dir);
+  await fs.writeFile(path.join(dir, "page.html"), await page.content(), "utf-8");
   try {
-    await page.screenshot({ path: path.join(DEBUG_DIR, key, "screen.png"), fullPage: true });
+    await page.screenshot({ path: path.join(dir, "screen.png"), fullPage: true });
   } catch {}
 }
 
@@ -88,7 +96,7 @@ async function fetchTopOffers(page, url, minQty, key) {
     throw new Error("No table rows found");
   }
 
-  // дополнительно ждём появление ценника с ₽
+  // ждём появление ₽ (ценник)
   await page.waitForFunction(
     (s) => {
       const rows = [...document.querySelectorAll(s)];
@@ -98,10 +106,10 @@ async function fetchTopOffers(page, url, minQty, key) {
     { timeout: 15000 }
   ).catch(() => {});
 
-  // немного подождать дорисовку
+  // небольшой лаг на дорисовку
   await page.waitForTimeout(1200);
 
-  // парсим через "последний столбец = цена ₽, предпоследний = наличие"
+  // парсим: последний столбец — цена ₽; предпоследний — наличие; если нет — ищем ближайшее число
   const parsed = await page.evaluate((s) => {
     function txt(n) { return (n?.textContent || "").trim(); }
     const rows = [...document.querySelectorAll(s)];
@@ -112,21 +120,18 @@ async function fetchTopOffers(page, url, minQty, key) {
       if (tds.length < 2) continue;
 
       let priceText = txt(tds[tds.length - 1]);
-      // подсказка: ищем ячейку где есть ₽, если последняя пуста
       if (!/₽/.test(priceText)) {
         const maybe = tds.map(txt).reverse().find(c => /₽/.test(c));
         if (maybe) priceText = maybe;
       }
 
       let qtyText = txt(tds[tds.length - 2]);
-      // если не похоже на число — попробуем найти число в любом tds
       if (!/\d/.test(qtyText)) {
         const nums = tds.map(td => txt(td).match(/\d[\d\s.,]*/g)?.join(" ") || "").filter(Boolean);
         const vals = nums.map(n => parseFloat(n.replace(/\s+/g, "").replace(",", "."))).filter(Number.isFinite);
         if (vals.length) qtyText = String(Math.max(...vals));
       }
 
-      // ссылка продавца (если есть)
       const a = tr.querySelector("a[href]");
       items.push({
         priceText,
@@ -148,11 +153,9 @@ async function fetchTopOffers(page, url, minQty, key) {
     }))
     .filter(o => o.unit_price_RUB > 0 && o.amount > 0);
 
-  // сортируем по цене, фильтруем minQty
   offers = offers.sort((a, b) => a.unit_price_RUB - b.unit_price_RUB);
   if (minQty && Number.isFinite(minQty)) offers = offers.filter(o => o.amount >= minQty);
 
-  // отбрасываем явные выбросы вокруг медианы
   if (offers.length >= 5) {
     const med = median(offers.map(o => o.unit_price_RUB)) || 1;
     const filtered = offers.filter(o => Math.abs(o.unit_price_RUB - med) / med <= 0.25);
