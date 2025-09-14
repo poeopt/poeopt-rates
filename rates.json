@@ -1,33 +1,16 @@
 {
-  "updated_at": "2025-09-14T23:00:18.290Z",
+  "updated_at": "2025-09-14T23:47:37.171Z",
   "source": "funpay",
   "pairs": {
-    "le:gold": {
-      "game": "le",
-      "currency": "gold",
-      "price_RUB": 0,
-      "change_24h": null,
-      "change_7d": null,
-      "updated_at": "2025-09-14T22:59:24.705Z",
-      "trades_top5": []
-    },
-    "tli:flame-elementium": {
-      "game": "tli",
-      "currency": "flame-elementium",
-      "price_RUB": 0,
-      "change_24h": null,
-      "change_7d": null,
-      "updated_at": "2025-09-14T22:59:42.236Z",
-      "trades_top5": []
-    },
     "poe2:divine-orb": {
       "game": "poe2",
       "currency": "divine-orb",
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-14T23:00:00.696Z",
-      "trades_top5": []
+      "updated_at": "2025-09-14T23:46:25.460Z",
+      "trades_top5": [],
+      "error": "page.waitForFunction: Timeout 20000ms exceeded."
     },
     "poe1:divine-orb": {
       "game": "poe1",
@@ -35,8 +18,29 @@
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-14T23:00:18.290Z",
-      "trades_top5": []
+      "updated_at": "2025-09-14T23:46:49.118Z",
+      "trades_top5": [],
+      "error": "page.waitForFunction: Timeout 20000ms exceeded."
+    },
+    "tli:flame-elementium": {
+      "game": "tli",
+      "currency": "flame-elementium",
+      "price_RUB": 0,
+      "change_24h": null,
+      "change_7d": null,
+      "updated_at": "2025-09-14T23:47:13.581Z",
+      "trades_top5": [],
+      "error": "page.waitForFunction: Timeout 20000ms exceeded."
+    },
+    "le:gold": {
+      "game": "le",
+      "currency": "gold",
+      "price_RUB": 0,
+      "change_24h": null,
+      "change_7d": null,
+      "updated_at": "2025-09-14T23:47:37.133Z",
+      "trades_top5": [],
+      "error": "page.waitForFunction: Timeout 20000ms exceeded."
     }
   }
 }
