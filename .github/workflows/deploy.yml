@@ -2,14 +2,12 @@ name: Build & Publish rates.json
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # каждые 5 минут
-  workflow_dispatch: {}      # запуск вручную
+    - cron: "*/5 * * * *"     # каждые 5 минут
+  workflow_dispatch: {}        # запуск вручную
 
-# даём воркфлоу право пушить в gh-pages
 permissions:
   contents: write
 
-# чтобы новые запуски отменяли предыдущие
 concurrency:
   group: rates-build
   cancel-in-progress: true
@@ -23,30 +21,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node 20 (с кэшем npm)
+      - name: Setup Node 20
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            pw-${{ runner.os }}-
+          # cache: "npm"    # <-- УБРАЛИ кэш, чтобы не требовал lock-файл
 
       - name: Install deps (+ Chromium для Playwright)
         run: |
-          npm ci || npm i
+          npm i --no-fund --no-audit
           npx playwright install --with-deps chromium
 
       - name: Build rates.json
-        run: npm run build   # должен вызвать scripts/build.js
+        run: npm run build   # запускает scripts/build.js
 
-      # --- этот шаг добавляет index.html в корень gh-pages,
-      # чтобы по адресу / не было 404 и можно было увидеть JSON
       - name: Add index.html (viewer для корня)
         run: |
           mkdir -p dist
