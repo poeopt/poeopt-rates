@@ -1,289 +1,216 @@
-/**
- * build.cjs — сборщик rates.json + скриншоты для отладки
- * Запуск: `npm run build` (его вызывает GitHub Actions)
- *
- * Ожидает файл `mapping.json` в корне репозитория.
- * Формат mapping:
- *   Вариант А (массив):
- *     [
- *       { "key":"poe2:divine-orb", "game":"poe2", "currency":"divine-orb", "funpay_url":"https://funpay.com/chips/209/" },
- *       ...
- *     ]
- *   Вариант Б (объект-словарь, старый формат):
- *     {
- *       "poe2:divine-orb": { "key":"poe2:divine-orb", "game":"poe2", "currency":"divine-orb", "funpay_url":"https://funpay.com/chips/209/" },
- *       ...
- *     }
- *
- * Выход:
- *   - dist/rates.json
- *   - dist/index.html (простой viewer)
- *   - debug/*.png (скриншоты страниц на момент парсинга)
- */
+// scripts/build.cjs  (CommonJS, без ESM)
+// Сборка rates.json из Funpay + отладочные артефакты (HTML/PNG) с безопасными именами
 
-const fs = require('fs/promises');
-const path = require('path');
-const { chromium } = require('playwright');
+const fs = require("fs");
+const path = require("path");
+const { chromium } = require("playwright");
 
-const ROOT = process.cwd();
-const OUT_DIR = path.join(ROOT, 'dist');
-const DEBUG_DIR = path.join(ROOT, 'debug');
-const MAPPING_PATH = path.join(ROOT, 'mapping.json');
+// ---------- утилиты ----------
+function safeName(s) {
+  return String(s).toLowerCase().replace(/[^a-z0-9._-]/g, "_");
+}
 
-const HEADLESS = true; // на Actions всегда true
-const NAV_TIMEOUT = 45000;
-
-/** Утилиты */
-async function readMapping() {
-  const raw = await fs.readFile(MAPPING_PATH, 'utf-8');
-  let data;
+async function saveDebug(stem, page) {
   try {
-    data = JSON.parse(raw);
+    await fs.promises.mkdir("debug", { recursive: true });
+    const base = safeName(stem);
+    const html = await page.content();
+    await fs.promises.writeFile(path.join("debug", `${base}.html`), html, "utf8");
+    await page.screenshot({ path: path.join("debug", `${base}.png`), fullPage: true }).catch(() => {});
   } catch (e) {
-    throw new Error(`mapping.json невалиден JSON: ${e.message}`);
+    console.error("saveDebug error:", e.message);
+  }
+}
+
+function parseNumber(text) {
+  if (!text) return NaN;
+  const n = text
+    .replace(/\s+/g, "")
+    .replace(",", ".")
+    .replace(/[^\d.]/g, "");
+  return n ? Number(n) : NaN;
+}
+
+function vwap(top, minQty = 1) {
+  if (!Array.isArray(top) || top.length === 0) {
+    return { price_RUB: 0, trades_top5: [] };
+  }
+  let qtySum = 0;
+  let costSum = 0;
+  for (const t of top) {
+    const q = Math.max(Number(t.qty || 0), minQty);
+    if (!isFinite(t.price) || !isFinite(q) || q <= 0) continue;
+    qtySum += q;
+    costSum += q * t.price;
+  }
+  return {
+    price_RUB: qtySum > 0 ? Number((costSum / qtySum).toFixed(2)) : 0,
+    trades_top5: top
+  };
+}
+
+// ---------- основной процесс ----------
+(async () => {
+  // читаем mapping
+  const mappingRaw = await fs.promises.readFile(path.join("mapping.json"), "utf8");
+  let pairs;
+  try {
+    pairs = JSON.parse(mappingRaw);
+  } catch (e) {
+    console.error("mapping.json: невалидный JSON");
+    process.exit(1);
+  }
+  if (!Array.isArray(pairs)) {
+    console.error("mapping.json должен быть массивом объектов");
+    process.exit(1);
   }
 
-  // Поддержка двух форматов — массив и словарь
-  if (Array.isArray(data)) return data;
-  if (data && typeof data === 'object') {
-    return Object.values(data);
-  }
-  throw new Error('mapping.json должен быть массивом объектов или словарём ключ -> объект');
-}
-
-function toNumberSafe(txt) {
-  if (!txt) return NaN;
-  const m = String(txt).replace(/\u00A0/g, ' ').match(/([0-9]+(?:[.,][0-9]+)?)/);
-  if (!m) return NaN;
-  return parseFloat(m[1].replace(',', '.'));
-}
-
-function nowISO() {
-  return new Date().toISOString();
-}
-
-async function ensureDirs() {
-  await fs.mkdir(OUT_DIR, { recursive: true });
-  await fs.mkdir(DEBUG_DIR, { recursive: true });
-}
-
-/**
- * Ключевая функция парсинга Funpay.
- * Делаем максимально "живучие" селекторы.
- *
- * Возвращает:
- *   { firstPrice: number|0, top5: number[] }
- */
-async function scrapeFunpayPage(browser, url, debugKey) {
+  // chromium
+  const browser = await chromium.launch({
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-gpu",
+      "--disable-dev-shm-usage",
+      "--disable-setuid-sandbox",
+    ],
+  });
   const context = await browser.newContext({
     userAgent:
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-    locale: 'ru-RU',
-    extraHTTPHeaders: {
-      'accept-language': 'ru-RU,ru;q=0.9,en;q=0.8',
-    },
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36",
+    viewport: { width: 1400, height: 1000 },
   });
-  const page = await context.newPage();
 
-  try {
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
+  const out = {
+    updated_at: new Date().toISOString(),
+    source: "funpay",
+    pairs: {},
+  };
 
-    // Иногда таблица прогружается лениво — подождём чуть-чуть
-    await page.waitForTimeout(1500);
+  for (const p of pairs) {
+    const key = p.key;
+    const funpayUrl = p.funpay_url;
+    const game = p.game || "";
+    const currency = p.currency || "";
+    const minQty = Number(p.min_qty || 1);
 
-    // Ждём таблицу с лотами (класс меняется, но паттерн стабилен)
-    const tableSel = 'table.tc-table, table[class*="tc-table"]';
-    await page.waitForSelector(tableSel, { timeout: NAV_TIMEOUT });
+    const page = await context.newPage();
+    page.setDefaultTimeout(30000);
 
-    // Чтобы попасть точно в видимую секцию, прокрутим немного вниз (на некоторых страницах шапка перекрывает)
-    await page.evaluate(() => window.scrollBy(0, 200));
-    await page.waitForTimeout(500);
-
-    // Собираем цены из первых видимых строк
-    // Пытаемся разными селекторами (на случай правок вёрстки)
-    const prices = await page.evaluate(() => {
-      const pickText = (el) => (el ? (el.textContent || '').trim() : '');
-      const rows = Array.from(
-        document.querySelectorAll('table.tc-table tbody tr:not(.hidden), table[class*="tc-table"] tbody tr:not(.hidden)')
-      ).slice(0, 12); // берём с запасом — вдруг попадаются пустые/баннеры
-
-      const out = [];
-      for (const tr of rows) {
-        // варианты, где может лежать цена:
-        // 1) div.tc-price
-        // 2) td с атрибутом data-sortable="price"
-        // 3) последний столбец, внутри которого число + символ ₽
-        let txt =
-          pickText(tr.querySelector('div.tc-price')) ||
-          pickText(tr.querySelector('td[data-sortable="price"]')) ||
-          pickText(tr.querySelector('td:last-child')) ||
-          '';
-
-        // иногда внутри есть дочерние с классом "price" — попробуем
-        if (!txt || !/[0-9]/.test(txt)) {
-          txt = pickText(tr.querySelector('[class*="price"]'));
-        }
-
-        if (/[0-9]/.test(txt)) {
-          out.push(txt);
-        }
-      }
-      return out;
-    });
-
-    const numeric = prices
-      .map(toNumberSafe)
-      .filter((n) => Number.isFinite(n) && n > 0)
-      .slice(0, 5);
-
-    // скриншот в debug
-    const shotPath = path.join(DEBUG_DIR, `${debugKey}.png`);
-    await page.screenshot({ path: shotPath, fullPage: false });
-
-    await context.close();
-
-    return {
-      firstPrice: numeric.length ? numeric[0] : 0,
-      top5: numeric,
-    };
-  } catch (err) {
-    // Скрин для неудачных случаев тоже полезен
     try {
-      const shotPath = path.join(DEBUG_DIR, `${debugKey}__error.png`);
-      await page.screenshot({ path: shotPath, fullPage: false });
-    } catch (_) {}
-    await context.close();
-    return { firstPrice: 0, top5: [] };
-  }
-}
+      await page.goto(funpayUrl, { waitUntil: "domcontentloaded" });
 
-/** Генерим простой index.html (для проверки руками) */
-async function writeIndex() {
-  const html = `<!doctype html>
+      // небольшой «дыхательный» таймаут, чтобы успела догрузиться витрина
+      await page.waitForTimeout(1500);
+
+      // иногда у Funpay появляется кнопка «Показать ещё предложений»
+      const moreBtn = await page.$('button:has-text("Показать ещё предложений")');
+      if (moreBtn) {
+        await moreBtn.click().catch(() => {});
+        await page.waitForTimeout(1000);
+      }
+
+      // собираем карточки
+      const offers = await page.evaluate(() => {
+        // На витрине строки обычно— <a class="tc-item…"> …
+        const rows = Array.from(document.querySelectorAll("a.tc-item"));
+        const items = [];
+        for (const row of rows) {
+          const priceText =
+            row.querySelector(".tc-price")?.textContent ||
+            row.querySelector('[class*="price"]')?.textContent ||
+            "";
+          // наличие/объём (иногда рядом с иконкой монеты): «Наличие 6к» и т.п.
+          const qtyCandidate =
+            row.querySelector(".tc-amount")?.textContent ||
+            row.querySelector('[class*="amount"]')?.textContent ||
+            row.textContent;
+
+          const priceStr = (priceText || "").trim();
+          const qtyStr = (qtyCandidate || "").trim();
+
+          items.push({ priceText: priceStr, qtyText: qtyStr });
+        }
+        return items;
+      });
+
+      // парсим числа
+      const parsed = (offers || [])
+        .map((o) => {
+          const price = Number(
+            (o.priceText || "")
+              .replace(/\s+/g, "")
+              .replace(",", ".")
+              .replace(/[^\d.]/g, "")
+          );
+          // из строки «Наличие 3к», «6000», «47к» и т.п.
+          let qty = 0;
+          const mK = /(\d+(?:[.,]\d+)?)\s*к/i.exec(o.qtyText || "");
+          const mN = /(\d+(?:[.,]\d+)?)/.exec(o.qtyText || "");
+          if (mK) qty = Number(mK[1].replace(",", ".")) * 1000;
+          else if (mN) qty = Number(mN[1].replace(",", "."));
+          return { price, qty };
+        })
+        .filter((x) => isFinite(x.price) && x.price > 0);
+
+      // ТОП-5 по цене
+      const top5 = parsed.sort((a, b) => a.price - b.price).slice(0, 5);
+      const { price_RUB, trades_top5 } = vwap(top5, minQty);
+
+      out.pairs[key] = {
+        game,
+        currency,
+        price_RUB,
+        change_24h: null,
+        change_7d: null,
+        updated_at: new Date().toISOString(),
+        trades_top5,
+      };
+
+      await saveDebug(key, page);
+    } catch (e) {
+      console.error(`[${key}] ошибка:`, e.message);
+      out.pairs[key] = {
+        game,
+        currency,
+        price_RUB: 0,
+        change_24h: null,
+        change_7d: null,
+        updated_at: new Date().toISOString(),
+        trades_top5: [],
+      };
+      await saveDebug(`${key}__error`, page);
+    } finally {
+      await page.close().catch(() => {});
+    }
+  }
+
+  await browser.close().catch(() => {});
+
+  // пишем dist
+  await fs.promises.mkdir("dist", { recursive: true });
+  await fs.promises.writeFile(
+    path.join("dist", "rates.json"),
+    JSON.stringify(out, null, 2),
+    "utf8"
+  );
+
+  // простой index.html со ссылкой на JSON
+  const indexHtml = `<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>poeopt-rates</title>
-  <style>
-    :root{color-scheme:dark light;}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;background:#0e0e0f;color:#e9e9ea;padding:24px}
-    a{color:#9ad}
-    table{border-collapse:collapse;margin-top:16px;width:100%;max-width:860px}
-    th,td{border:1px solid #333;padding:8px 10px;text-align:left}
-    th{background:#16181c}
-    tr:nth-child(odd){background:#0f1115}
-    .muted{opacity:.7}
-    .chip{display:inline-block;background:#1b2030;border:1px solid #2a3247;border-radius:999px;padding:0 10px;line-height:24px;font-size:12px;margin-right:6px}
-  </style>
+  <style>html,body{background:#111;color:#ddd;font:16px/1.5 system-ui,Segoe UI,Roboto,Arial;padding:24px}</style>
 </head>
 <body>
   <h1>poeopt-rates</h1>
-  <div><span class="muted">Данные:</span> <a href="./rates.json">rates.json</a></div>
-  <div id="when" class="muted" style="margin-top:8px"></div>
-
-  <table id="tbl" style="display:none">
-    <thead>
-      <tr><th>key</th><th>game</th><th>currency</th><th>price_RUB</th><th>top5</th><th>updated_at</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <script>
-    async function main(){
-      try{
-        const r = await fetch('./rates.json', {cache:'no-store'});
-        const data = await r.json();
-
-        document.getElementById('when').textContent = 'Обновлено: ' + (data.updated_at || '');
-
-        const tbody = document.querySelector('#tbl tbody');
-        tbody.innerHTML = '';
-        const pairs = data.pairs || {};
-        for (const [key, v] of Object.entries(pairs)) {
-          const tr = document.createElement('tr');
-          const top5 = (v.trades_top5||[]).map(x=>x.price_RUB ?? x).join(', ');
-          tr.innerHTML = '<td>'+key+'</td>'+
-                         '<td>'+ (v.game||'') +'</td>'+
-                         '<td>'+ (v.currency||'') +'</td>'+
-                         '<td>'+ (v.price_RUB ?? 0) +'</td>'+
-                         '<td>'+ top5 +'</td>'+
-                         '<td class="muted">'+ (v.updated_at||'') +'</td>';
-          tbody.appendChild(tr);
-        }
-        document.getElementById('tbl').style.display = '';
-      }catch(e){
-        document.getElementById('when').textContent = 'Не удалось прочитать rates.json';
-      }
-    }
-    main();
-  </script>
+  <p>Данные: <a href="rates.json">rates.json</a></p>
 </body>
 </html>`;
-  await fs.writeFile(path.join(OUT_DIR, 'index.html'), html, 'utf-8');
-}
+  await fs.promises.writeFile(path.join("dist", "index.html"), indexHtml, "utf8");
 
-/** Основной пайплайн */
-(async () => {
-  await ensureDirs();
-
-  const mapping = await readMapping();
-
-  const browser = await chromium.launch({
-    headless: HEADLESS,
-    args: [
-      '--no-sandbox',
-      '--disable-gpu',
-      '--disable-dev-shm-usage',
-      '--disable-blink-features=AutomationControlled',
-    ],
-  });
-
-  const outPairs = {};
-
-  for (const item of mapping) {
-    const key = item.key || `${item.game}:${item.currency}`;
-    const url = item.funpay_url;
-    if (!url) {
-      // если в mapping нет ссылки — просто пропускаем
-      outPairs[key] = {
-        game: item.game || '',
-        currency: item.currency || '',
-        price_RUB: 0,
-        change_24h: null,
-        change_7d: null,
-        updated_at: nowISO(),
-        trades_top5: [],
-      };
-      continue;
-    }
-
-    const { firstPrice, top5 } = await scrapeFunpayPage(browser, url, key);
-
-    outPairs[key] = {
-      game: item.game || '',
-      currency: item.currency || '',
-      price_RUB: firstPrice || 0,
-      change_24h: null,
-      change_7d: null,
-      updated_at: nowISO(),
-      trades_top5: top5.map((p) => ({ price_RUB: p })),
-    };
-  }
-
-  await browser.close();
-
-  const payload = {
-    updated_at: nowISO(),
-    source: 'funpay',
-    pairs: outPairs,
-  };
-
-  await fs.writeFile(path.join(OUT_DIR, 'rates.json'), JSON.stringify(payload, null, 2), 'utf-8');
-  await writeIndex();
-
-  console.log('✓ Готово: dist/rates.json и dist/index.html');
-})().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+  console.log("✅ Готово: dist/rates.json + dist/index.html");
+  process.exit(0);
+})();
