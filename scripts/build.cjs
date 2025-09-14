@@ -1,7 +1,4 @@
 // scripts/build.cjs
-// Полноценный рендер Chromium + парсинг первых 5 цен "₽"
-// Пишем rates.json и кладём debug-артефакты (html/png) для проверки
-
 const fs = require('fs/promises');
 const path = require('path');
 const { chromium } = require('playwright');
@@ -43,7 +40,6 @@ async function scrapeFunpayPage(browser, key, url) {
 
   await page.route('**/*', (route) => {
     const req = route.request();
-    // режем лишнее (не обязательно, но экономит время)
     if (/\.(png|jpg|jpeg|gif|webp|svg|woff2?|ttf|eot)$/i.test(req.url())) {
       return route.abort();
     }
@@ -53,44 +49,34 @@ async function scrapeFunpayPage(browser, key, url) {
   console.log('[NAVIGATE]', key, url);
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
 
-  // лёгкое «человеческое» поведение
   await page.waitForTimeout(800);
   await page.mouse.move(200, 200);
   await page.waitForTimeout(400);
 
-  // ждём появления символа ₽ в DOM
   try {
     await page.waitForFunction(
       () => document.body && document.body.innerText && document.body.innerText.includes('₽'),
       { timeout: 20000 }
     );
-  } catch (_) {
-    // падать не будем — сохраним дебаг и попробуем вытащить, что есть
-  }
+  } catch (_) {}
 
-  // Сохраним дебаг
   await ensureDir(DEBUG_DIR);
   await fs.writeFile(path.join(DEBUG_DIR, `${safeKey}__page.html`), await page.content(), 'utf-8');
   await page.screenshot({ path: path.join(DEBUG_DIR, `${safeKey}__page.png`), fullPage: true });
 
-  // Универсальный извлекатель цен из текста страницы
   const prices = await page.evaluate(() => {
     const text = document.body?.innerText || '';
     const matches = Array.from(text.matchAll(/(\d[\d\s]*[.,]\d+)\s*₽/g)).map((m) =>
       m[1].replace(/\s+/g, '').replace(',', '.')
     );
-    return matches.slice(0, 10); // возьмем немного с запасом
+    return matches.slice(0, 10);
   });
 
   const pNums = prices.map(toNum).filter((n) => Number.isFinite(n));
   const top5 = pNums.slice(0, 5);
-
   await page.close();
 
-  // Сформируем «сырые» трейды (для прозрачности)
   const trades_top5 = top5.map((p) => ({ row_text: `${p} ₽`, price_RUB: p }));
-
-  // усреднение
   const price_RUB =
     top5.length > 0 ? Math.round((top5.reduce((a, b) => a + b, 0) / top5.length) * 100) / 100 : 0;
 
