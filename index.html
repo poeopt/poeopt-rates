@@ -1,17 +1,5 @@
-<!doctype html>
-<meta charset="utf-8">
-<title>poeopt-rates</title>
-<style>
-  :root { color-scheme: dark light }
-  body{font:14px/1.5 system-ui,Arial;padding:24px;background:#0b0b0b;color:#eee}
-  a{color:#ffd166}
-  pre{white-space:pre-wrap}
-</style>
-<h1>poeopt-rates</h1>
+<!doctype html><meta charset="utf-8"><title>poeopt-rates</title>
+<style>body{background:#111;color:#ddd;font:14px/1.4 system-ui,Segoe UI,Roboto,Arial;margin:20px}a{color:#9cf}</style>
 <p>Данные: <a href="rates.json">rates.json</a></p>
-<pre id="out">loading…</pre>
-<script>
-  fetch('rates.json').then(r=>r.json()).then(j=>{
-    out.textContent = JSON.stringify(j,null,2);
-  }).catch(e=>{ out.textContent = 'Error: '+e; });
-</script>
+<pre id="o">Загружаю…</pre>
+<script>fetch('rates.json').then(r=>r.json()).then(j=>o.textContent=JSON.stringify(j,null,2)).catch(e=>o.textContent=e)</script>
