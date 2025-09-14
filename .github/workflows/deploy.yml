@@ -1,74 +1,63 @@
 name: Build & Publish rates.json
 
 on:
+  # ручной запуск
+  workflow_dispatch:
+  # каждые 5 минут
   schedule:
-    - cron: "*/5 * * * *"
-  workflow_dispatch: {}
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: write
 
+# >>> Новое: конкуренция — оставляем только самый новый запуск
 concurrency:
   group: rates-build
   cancel-in-progress: true
+# <<<
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 15
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 20
 
       - name: Install deps (+ Chromium для Playwright)
         run: |
-          npm i --no-fund --no-audit
+          npm ci || npm i
           npx playwright install --with-deps chromium
 
       - name: Build rates.json
-        run: npm run build
+        run: node scripts/build.js
 
-      # DEBUG: выгружаем снимки страниц, если были
-      - name: Upload debug artifacts
+      - name: Upload debug artifacts (if any)
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: debug
           path: debug/**
+          if-no-files-found: ignore  # предупреждение можно игнорировать
 
       - name: Add index.html (viewer для корня)
         run: |
           mkdir -p dist
-          cat > dist/index.html << 'HTML'
-          <!doctype html>
-          <meta charset="utf-8">
-          <title>poeopt-rates</title>
-          <style>
-            :root { color-scheme: dark light }
-            body{font:14px/1.5 system-ui,Arial;padding:24px;background:#0b0b0b;color:#eee}
-            a{color:#ffd166}
-            pre{white-space:pre-wrap}
-          </style>
-          <h1>poeopt-rates</h1>
+          cat > dist/index.html <<'HTML'
+          <!doctype html><meta charset="utf-8"><title>poeopt-rates</title>
+          <style>body{background:#111;color:#ddd;font:14px/1.4 system-ui,Segoe UI,Roboto,Arial;margin:20px}a{color:#9cf}</style>
           <p>Данные: <a href="rates.json">rates.json</a></p>
-          <pre id="out">loading…</pre>
-          <script>
-            fetch('rates.json').then(r=>r.json()).then(j=>{
-              out.textContent = JSON.stringify(j,null,2);
-            }).catch(e=>{ out.textContent = 'Error: '+e; });
-          </script>
+          <pre id="o">Загружаю…</pre>
+          <script>fetch('rates.json').then(r=>r.json()).then(j=>o.textContent=JSON.stringify(j,null,2)).catch(e=>o.textContent=e)</script>
           HTML
 
       - name: Publish to gh-pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           branch: gh-pages
           folder: dist
           clean: true
