@@ -1,5 +1,9 @@
-<!doctype html><meta charset="utf-8"><title>poeopt-rates</title>
-<style>body{background:#111;color:#ddd;font:14px/1.4 system-ui,Segoe UI,Roboto,Arial;margin:20px}a{color:#9cf}</style>
-<p>Данные: <a href="rates.json">rates.json</a></p>
-<pre id="o">Загружаю…</pre>
-<script>fetch('rates.json').then(r=>r.json()).then(j=>o.textContent=JSON.stringify(j,null,2)).catch(e=>o.textContent=e)</script>
+<!doctype html>
+<meta charset="utf-8">
+<title>poeopt-rates</title>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#111;color:#ddd;padding:24px}
+  a{color:#8ab4f8}
+</style>
+<h1>poeopt-rates</h1>
+<p>Данные: <a href="./rates.json">rates.json</a></p>
