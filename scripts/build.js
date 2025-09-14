@@ -1,4 +1,4 @@
-// scripts/build.js — надёжный парсер + отладочные дампы
+// scripts/build.js — парсер FunPay с fallback-логикой и отладочными дампами
 import fs from "fs/promises";
 import path from "path";
 import { chromium } from "playwright";
@@ -11,7 +11,7 @@ const DEBUG_DIR = "debug";
 function toFloat(text) {
   if (!text) return 0;
   const s = String(text)
-    .replace(/\u00A0/g, " ")      // nbsp
+    .replace(/\u00A0/g, " ")
     .replace(/\s+/g, "")
     .replace(",", ".")
     .replace(/[^\d.]/g, "");
@@ -32,66 +32,111 @@ function vwap(rows) {
   return qty ? tot / qty : 0;
 }
 
-async function ensureDir(p) { await fs.mkdir(p, { recursive: true }); }
+async function ensureDir(p) {
+  await fs.mkdir(p, { recursive: true });
+}
 
-async function fetchTopOffers(page, url, minQty = 0, key = "pair") {
+async function saveDebug(page, key) {
+  await ensureDir(path.join(DEBUG_DIR, key));
+  await fs.writeFile(path.join(DEBUG_DIR, key, "page.html"), await page.content(), "utf-8");
+  try {
+    await page.screenshot({ path: path.join(DEBUG_DIR, key, "screen.png"), fullPage: true });
+  } catch {}
+}
+
+async function isAntiBot(page) {
+  const html = (await page.content()).toLowerCase();
+  return (
+    html.includes("just a moment") ||
+    html.includes("checking your browser") ||
+    html.includes("verify you are human") ||
+    html.includes("access denied") ||
+    html.includes("cloudflare")
+  );
+}
+
+async function fetchTopOffers(page, url, minQty, key) {
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 90000 });
 
-  // немного маскировки против антиботов
+  // маскируем webdriver-след
   await page.addInitScript(() => {
     Object.defineProperty(navigator, "webdriver", { get: () => false });
   });
 
-  // дождаться реального контента
-  await page.waitForLoadState("networkidle", { timeout: 20000 }).catch(() => {});
-  await page.waitForSelector("table, tbody tr, tr", { timeout: 25000 });
+  // дожидаемся сетевых запросов/дорисовки
+  await page.waitForLoadState("networkidle", { timeout: 25000 }).catch(() => {});
 
-  // иногда таблица дорисовывается — дать время
-  await page.waitForTimeout(1800);
+  // если антибот — фиксируем и выходим
+  if (await isAntiBot(page)) {
+    await saveDebug(page, key);
+    throw new Error("Anti-bot page detected (Cloudflare/Turnstile).");
+  }
 
-  // парсим максимально универсально
-  const parsed = await page.evaluate(() => {
+  // ждём таблицу: возможны разные корни
+  const selRows = [
+    "table tbody tr",
+    "tbody tr",
+    "tr" // крайний fallback
+  ];
+  let foundSelector = null;
+  for (const s of selRows) {
+    const ok = await page.$(s);
+    if (ok) { foundSelector = s; break; }
+  }
+  if (!foundSelector) {
+    await saveDebug(page, key);
+    throw new Error("No table rows found");
+  }
+
+  // дополнительно ждём появление ценника с ₽
+  await page.waitForFunction(
+    (s) => {
+      const rows = [...document.querySelectorAll(s)];
+      return rows.some(tr => /₽/.test(tr.textContent || ""));
+    },
+    foundSelector,
+    { timeout: 15000 }
+  ).catch(() => {});
+
+  // немного подождать дорисовку
+  await page.waitForTimeout(1200);
+
+  // парсим через "последний столбец = цена ₽, предпоследний = наличие"
+  const parsed = await page.evaluate((s) => {
     function txt(n) { return (n?.textContent || "").trim(); }
+    const rows = [...document.querySelectorAll(s)];
+    const items = [];
 
-    const table = document.querySelector("table");
-    let header = [];
-    if (table) header = [...table.querySelectorAll("thead th")].map(th => txt(th).toLowerCase());
+    for (const tr of rows.slice(0, 40)) {
+      const tds = [...tr.querySelectorAll("td")];
+      if (tds.length < 2) continue;
 
-    const priceCol = header.findIndex(h => h.includes("цена"));
-    const qtyCol   = header.findIndex(h => h.includes("налич") || h.includes("кол"));
-
-    const rows = [...document.querySelectorAll("tbody tr")];
-    const fallBackRows = rows.length ? rows : [...document.querySelectorAll("tr")].slice(1, 60);
-
-    const items = fallBackRows.map(tr => {
-      const tds = [...tr.querySelectorAll("td")].map(td => txt(td));
-      const a   = tr.querySelector("a[href]");
-
-      // 1) по индексам, если нашли заголовки
-      let priceText = (priceCol >= 0 && tds[priceCol]) || "";
-      let qtyText   = (qtyCol   >= 0 && tds[qtyCol])   || "";
-
-      // 2) fallback: ищем «₽» / числа в ячейках
-      if (!priceText || !/[₽pP]/.test(priceText)) {
-        const pCell = tds.find(c => /₽/.test(c) || /\d[\d\s.,]*\s?[pP]/.test(c));
-        if (pCell) priceText = pCell;
+      let priceText = txt(tds[tds.length - 1]);
+      // подсказка: ищем ячейку где есть ₽, если последняя пуста
+      if (!/₽/.test(priceText)) {
+        const maybe = tds.map(txt).reverse().find(c => /₽/.test(c));
+        if (maybe) priceText = maybe;
       }
-      if (!qtyText) {
-        // берём самую большую цифру в строке как "наличие"
-        const nums = tds.map(c => (c.match(/\d[\d\s.,]*/g) || []).join(" ")).filter(Boolean);
+
+      let qtyText = txt(tds[tds.length - 2]);
+      // если не похоже на число — попробуем найти число в любом tds
+      if (!/\d/.test(qtyText)) {
+        const nums = tds.map(td => txt(td).match(/\d[\d\s.,]*/g)?.join(" ") || "").filter(Boolean);
         const vals = nums.map(n => parseFloat(n.replace(/\s+/g, "").replace(",", "."))).filter(Number.isFinite);
         if (vals.length) qtyText = String(Math.max(...vals));
       }
 
-      return {
+      // ссылка продавца (если есть)
+      const a = tr.querySelector("a[href]");
+      items.push({
         priceText,
         qtyText,
-        link: a ? a.href : null,
-      };
-    });
+        link: a ? a.href : null
+      });
+    }
 
     return { items };
-  });
+  }, foundSelector);
 
   let offers = parsed.items
     .map(r => ({
@@ -101,26 +146,23 @@ async function fetchTopOffers(page, url, minQty = 0, key = "pair") {
       link: r.link || null,
       ts: NOW(),
     }))
-    .filter(o => o.unit_price_RUB > 0 && o.amount > 0)
-    .sort((a, b) => a.unit_price_RUB - b.unit_price_RUB);
+    .filter(o => o.unit_price_RUB > 0 && o.amount > 0);
 
-  if (minQty && Number.isFinite(minQty)) {
-    offers = offers.filter(o => o.amount >= minQty);
-  }
+  // сортируем по цене, фильтруем minQty
+  offers = offers.sort((a, b) => a.unit_price_RUB - b.unit_price_RUB);
+  if (minQty && Number.isFinite(minQty)) offers = offers.filter(o => o.amount >= minQty);
 
-  offers = offers.slice(0, TOP_N);
-
-  if (offers.length >= 3) {
+  // отбрасываем явные выбросы вокруг медианы
+  if (offers.length >= 5) {
     const med = median(offers.map(o => o.unit_price_RUB)) || 1;
     const filtered = offers.filter(o => Math.abs(o.unit_price_RUB - med) / med <= 0.25);
     if (filtered.length >= 3) offers = filtered;
   }
 
-  // --- DEBUG: если пусто, сохраним снимок
+  offers = offers.slice(0, TOP_N);
+
   if (!offers.length) {
-    await ensureDir(path.join(DEBUG_DIR, key));
-    await fs.writeFile(path.join(DEBUG_DIR, key, "page.html"), await page.content(), "utf-8");
-    await page.screenshot({ path: path.join(DEBUG_DIR, key, "screen.png"), fullPage: true }).catch(() => {});
+    await saveDebug(page, key);
   }
 
   return offers;
@@ -132,14 +174,28 @@ async function main() {
 
   const browser = await chromium.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-dev-shm-usage", "--disable-blink-features=AutomationControlled"],
+    args: [
+      "--no-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-blink-features=AutomationControlled",
+      "--disable-gpu"
+    ],
   });
+
   const context = await browser.newContext({
     locale: "ru-RU",
     userAgent:
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-    viewport: { width: 1400, height: 900 },
+    viewport: { width: 1440, height: 900 },
+    extraHTTPHeaders: {
+      "accept-language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "sec-ch-ua": "\"Chromium\";v=\"124\", \"Not:A-Brand\";v=\"99\"",
+      "sec-ch-ua-mobile": "?0",
+      "upgrade-insecure-requests": "1"
+    }
   });
+
   const page = await context.newPage();
 
   const out = { updated_at: NOW(), source: "funpay", pairs: {} };
@@ -157,7 +213,7 @@ async function main() {
         change_24h: null,
         change_7d: null,
         updated_at: NOW(),
-        trades_top5: top,
+        trades_top5: top
       };
       console.log(`OK: ${key} rows=${top.length} vwap=${out.pairs[key].price_RUB}`);
     } catch (e) {
@@ -169,13 +225,12 @@ async function main() {
         change_24h: null,
         change_7d: null,
         updated_at: NOW(),
-        trades_top5: [],
+        trades_top5: []
       };
     }
   }
 
   await fs.writeFile("dist/rates.json", JSON.stringify(out, null, 2), "utf-8");
-
   await browser.close();
 }
 
