@@ -1,216 +1,207 @@
-// scripts/build.cjs  (CommonJS, без ESM)
-// Сборка rates.json из Funpay + отладочные артефакты (HTML/PNG) с безопасными именами
+/* eslint-disable no-console */
+const fs = require('fs');
+const path = require('path');
+const { chromium } = require('playwright');
 
-const fs = require("fs");
-const path = require("path");
-const { chromium } = require("playwright");
+const ROOT = process.cwd();
+const OUT_DIR = path.join(ROOT, 'dist');
+const DEBUG_DIR = path.join(ROOT, 'debug');
 
-// ---------- утилиты ----------
-function safeName(s) {
-  return String(s).toLowerCase().replace(/[^a-z0-9._-]/g, "_");
+/** безопасное имя файла для отладочных скринов/дампов */
+function safeFile(name) {
+  return String(name).replace(/[^a-z0-9\-_.]+/gi, '-').toLowerCase();
 }
 
-async function saveDebug(stem, page) {
-  try {
-    await fs.promises.mkdir("debug", { recursive: true });
-    const base = safeName(stem);
-    const html = await page.content();
-    await fs.promises.writeFile(path.join("debug", `${base}.html`), html, "utf8");
-    await page.screenshot({ path: path.join("debug", `${base}.png`), fullPage: true }).catch(() => {});
-  } catch (e) {
-    console.error("saveDebug error:", e.message);
-  }
+/** извлекает число из строки "21,99 ₽" -> 21.99 */
+function num(txt) {
+  if (!txt) return NaN;
+  return parseFloat(String(txt).replace(',', '.').replace(/[^\d.]+/g, ''));
 }
 
-function parseNumber(text) {
-  if (!text) return NaN;
-  const n = text
-    .replace(/\s+/g, "")
-    .replace(",", ".")
-    .replace(/[^\d.]/g, "");
-  return n ? Number(n) : NaN;
+/** ждет, пока в таблице появятся видимые строки */
+async function waitRows(page, timeoutMs = 20000) {
+  const selRow = '.tc-table .tc-item';
+  await page.waitForFunction(
+    (s) => {
+      const rows = Array.from(document.querySelectorAll(s));
+      return rows.some((r) => r.offsetParent !== null);
+    },
+    selRow,
+    { timeout: timeoutMs }
+  );
 }
 
-function vwap(top, minQty = 1) {
-  if (!Array.isArray(top) || top.length === 0) {
-    return { price_RUB: 0, trades_top5: [] };
-  }
-  let qtySum = 0;
-  let costSum = 0;
-  for (const t of top) {
-    const q = Math.max(Number(t.qty || 0), minQty);
-    if (!isFinite(t.price) || !isFinite(q) || q <= 0) continue;
-    qtySum += q;
-    costSum += q * t.price;
-  }
-  return {
-    price_RUB: qtySum > 0 ? Number((costSum / qtySum).toFixed(2)) : 0,
-    trades_top5: top
-  };
+/** читает top N строк и считает VWAP */
+async function readTopVWAP(page, topN = 5) {
+  return await page.evaluate((n) => {
+    const rowsAll = Array.from(document.querySelectorAll('.tc-table .tc-item'))
+      .filter((el) => el.offsetParent !== null);
+    const rows = rowsAll.slice(0, n);
+
+    const take = rows.map((row) => {
+      const priceTxt =
+        row.querySelector('.tc-price')?.textContent ||
+        row.querySelector('[class*="price"]')?.textContent || '';
+      const amountTxt =
+        row.querySelector('.tc-amount, .tc-available, .tc-qty, .tc-quantity')?.textContent ||
+        row.querySelector('[class*="amount"], [class*="avail"]')?.textContent ||
+        '1';
+
+      const price = parseFloat(String(priceTxt).replace(',', '.').replace(/[^\d.]/g, ''));
+      const amt = parseFloat(String(amountTxt).replace(',', '.').replace(/[^\d.]/g, '')) || 1;
+      return { price, amt };
+    }).filter(x => Number.isFinite(x.price) && Number.isFinite(x.amt) && x.price > 0 && x.amt > 0);
+
+    if (!take.length) return null;
+
+    const totalAmt = take.reduce((a, b) => a + b.amt, 0) || take.length;
+    const vwap = take.reduce((s, r) => s + r.price * r.amt, 0) / totalAmt;
+
+    return {
+      vwap,
+      totalAmt,
+      rows: take.length
+    };
+  }, topN);
 }
 
-// ---------- основной процесс ----------
-(async () => {
-  // читаем mapping
-  const mappingRaw = await fs.promises.readFile(path.join("mapping.json"), "utf8");
-  let pairs;
-  try {
-    pairs = JSON.parse(mappingRaw);
-  } catch (e) {
-    console.error("mapping.json: невалидный JSON");
-    process.exit(1);
-  }
-  if (!Array.isArray(pairs)) {
-    console.error("mapping.json должен быть массивом объектов");
-    process.exit(1);
-  }
-
-  // chromium
-  const browser = await chromium.launch({
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-gpu",
-      "--disable-dev-shm-usage",
-      "--disable-setuid-sandbox",
-    ],
-  });
+/** основная функция для одного URL */
+async function scrapeOne(browser, item) {
   const context = await browser.newContext({
+    viewport: { width: 1366, height: 900 },
     userAgent:
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36",
-    viewport: { width: 1400, height: 1000 },
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36'
   });
+
+  const page = await context.newPage();
+  const safe = safeFile(item.key);
+
+  try {
+    const res = await page.goto(item.url, { waitUntil: 'networkidle', timeout: 45000 });
+    if (!res || !res.ok()) throw new Error(`HTTP ${res ? res.status() : 'no response'}`);
+
+    // ждём появления таблицы
+    await waitRows(page);
+
+    // небольшой скролл, чтобы прогрузились ленивые строки/стили
+    await page.evaluate(() => window.scrollBy(0, 300));
+    await page.waitForTimeout(500);
+
+    const data = await readTopVWAP(page, 5);
+    if (!data) throw new Error('Не удалось найти цены в таблице');
+
+    // успех — отладочный скрин (по желанию)
+    try {
+      await page.screenshot({ path: path.join(DEBUG_DIR, `${safe}.png`), fullPage: false });
+    } catch (_) {}
+
+    await context.close();
+
+    return {
+      ok: true,
+      price_RUB: Math.round((data.vwap + Number.EPSILON) * 100) / 100,
+      meta: { rows: data.rows, amount_sum: data.totalAmt }
+    };
+  } catch (err) {
+    console.error(`[${item.key}] error:`, err.message);
+    try {
+      await fs.promises.mkdir(DEBUG_DIR, { recursive: true });
+      await page.screenshot({ path: path.join(DEBUG_DIR, `${safe}_error.png`), fullPage: true });
+      await fs.promises.writeFile(
+        path.join(DEBUG_DIR, `${safe}_error.txt`),
+        `${item.url}\n${err.stack || err.message}`
+      );
+    } catch (_) {}
+    await context.close();
+    return { ok: false, error: String(err.message || err) };
+  }
+}
+
+async function main() {
+  await fs.promises.mkdir(OUT_DIR, { recursive: true });
+  await fs.promises.mkdir(DEBUG_DIR, { recursive: true });
+
+  const mappingRaw = JSON.parse(await fs.promises.readFile(path.join(ROOT, 'mapping.json'), 'utf8'));
+  if (!Array.isArray(mappingRaw)) {
+    throw new Error('mapping.json должен быть массивом объектов');
+  }
+
+  const browser = await chromium.launch({ headless: true });
+  const pairs = {};
+
+  for (const item of mappingRaw) {
+    const r = await scrapeOne(browser, item);
+
+    const base = {
+      game: item.game,
+      currency: item.currency,
+      price_RUB: 0,
+      change_24h: null,
+      change_7d: null,
+      updated_at: new Date().toISOString(),
+      trades_top5: []
+    };
+
+    if (r.ok) {
+      base.price_RUB = r.price_RUB;
+      base.meta = r.meta;
+    } else {
+      base.error = r.error;
+    }
+
+    pairs[item.key] = base;
+  }
+
+  await browser.close();
 
   const out = {
     updated_at: new Date().toISOString(),
-    source: "funpay",
-    pairs: {},
+    source: 'funpay',
+    pairs
   };
 
-  for (const p of pairs) {
-    const key = p.key;
-    const funpayUrl = p.funpay_url;
-    const game = p.game || "";
-    const currency = p.currency || "";
-    const minQty = Number(p.min_qty || 1);
-
-    const page = await context.newPage();
-    page.setDefaultTimeout(30000);
-
-    try {
-      await page.goto(funpayUrl, { waitUntil: "domcontentloaded" });
-
-      // небольшой «дыхательный» таймаут, чтобы успела догрузиться витрина
-      await page.waitForTimeout(1500);
-
-      // иногда у Funpay появляется кнопка «Показать ещё предложений»
-      const moreBtn = await page.$('button:has-text("Показать ещё предложений")');
-      if (moreBtn) {
-        await moreBtn.click().catch(() => {});
-        await page.waitForTimeout(1000);
-      }
-
-      // собираем карточки
-      const offers = await page.evaluate(() => {
-        // На витрине строки обычно— <a class="tc-item…"> …
-        const rows = Array.from(document.querySelectorAll("a.tc-item"));
-        const items = [];
-        for (const row of rows) {
-          const priceText =
-            row.querySelector(".tc-price")?.textContent ||
-            row.querySelector('[class*="price"]')?.textContent ||
-            "";
-          // наличие/объём (иногда рядом с иконкой монеты): «Наличие 6к» и т.п.
-          const qtyCandidate =
-            row.querySelector(".tc-amount")?.textContent ||
-            row.querySelector('[class*="amount"]')?.textContent ||
-            row.textContent;
-
-          const priceStr = (priceText || "").trim();
-          const qtyStr = (qtyCandidate || "").trim();
-
-          items.push({ priceText: priceStr, qtyText: qtyStr });
-        }
-        return items;
-      });
-
-      // парсим числа
-      const parsed = (offers || [])
-        .map((o) => {
-          const price = Number(
-            (o.priceText || "")
-              .replace(/\s+/g, "")
-              .replace(",", ".")
-              .replace(/[^\d.]/g, "")
-          );
-          // из строки «Наличие 3к», «6000», «47к» и т.п.
-          let qty = 0;
-          const mK = /(\d+(?:[.,]\d+)?)\s*к/i.exec(o.qtyText || "");
-          const mN = /(\d+(?:[.,]\d+)?)/.exec(o.qtyText || "");
-          if (mK) qty = Number(mK[1].replace(",", ".")) * 1000;
-          else if (mN) qty = Number(mN[1].replace(",", "."));
-          return { price, qty };
-        })
-        .filter((x) => isFinite(x.price) && x.price > 0);
-
-      // ТОП-5 по цене
-      const top5 = parsed.sort((a, b) => a.price - b.price).slice(0, 5);
-      const { price_RUB, trades_top5 } = vwap(top5, minQty);
-
-      out.pairs[key] = {
-        game,
-        currency,
-        price_RUB,
-        change_24h: null,
-        change_7d: null,
-        updated_at: new Date().toISOString(),
-        trades_top5,
-      };
-
-      await saveDebug(key, page);
-    } catch (e) {
-      console.error(`[${key}] ошибка:`, e.message);
-      out.pairs[key] = {
-        game,
-        currency,
-        price_RUB: 0,
-        change_24h: null,
-        change_7d: null,
-        updated_at: new Date().toISOString(),
-        trades_top5: [],
-      };
-      await saveDebug(`${key}__error`, page);
-    } finally {
-      await page.close().catch(() => {});
-    }
-  }
-
-  await browser.close().catch(() => {});
-
-  // пишем dist
-  await fs.promises.mkdir("dist", { recursive: true });
+  // write rates.json
   await fs.promises.writeFile(
-    path.join("dist", "rates.json"),
+    path.join(OUT_DIR, 'rates.json'),
     JSON.stringify(out, null, 2),
-    "utf8"
+    'utf8'
   );
 
-  // простой index.html со ссылкой на JSON
-  const indexHtml = `<!doctype html>
+  // tiny index.html (чтобы корень gh-pages не был пустым)
+  const html = `<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>poeopt-rates</title>
-  <style>html,body{background:#111;color:#ddd;font:16px/1.5 system-ui,Segoe UI,Roboto,Arial;padding:24px}</style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>poeopt-rates</title>
+<style>
+  body{background:#111;color:#ddd;font:16px/1.4 system-ui,Segoe UI,Roboto,Arial}
+  a{color:#8fd}
+  .box{max-width:820px;margin:48px auto;padding:16px}
+  pre{background:#181818;padding:12px;border-radius:8px;overflow:auto}
+</style>
 </head>
 <body>
-  <h1>poeopt-rates</h1>
-  <p>Данные: <a href="rates.json">rates.json</a></p>
+  <div class="box">
+    <h1>poeopt-rates</h1>
+    <p>Данные: <a href="./rates.json">rates.json</a></p>
+    <pre id="json">Загрузка...</pre>
+  </div>
+<script>
+fetch('./rates.json').then(r=>r.json()).then(j=>{
+  document.getElementById('json').textContent = JSON.stringify(j,null,2);
+}).catch(e=>{
+  document.getElementById('json').textContent = 'Ошибка: '+e;
+});
+</script>
 </body>
 </html>`;
-  await fs.promises.writeFile(path.join("dist", "index.html"), indexHtml, "utf8");
+  await fs.promises.writeFile(path.join(OUT_DIR, 'index.html'), html, 'utf8');
 
-  console.log("✅ Готово: dist/rates.json + dist/index.html");
-  process.exit(0);
-})();
+  console.log('OK: dist/rates.json + dist/index.html');
+}
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
