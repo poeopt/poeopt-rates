@@ -2,8 +2,12 @@ name: Build & Publish rates.json
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # каждые 5 минут
-  workflow_dispatch: {}      # запуск вручную
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+
+# ↓ даём явные права на запись содержимого репозитория
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -23,6 +27,8 @@ jobs:
       - name: Publish to gh-pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
+          # ↓ явно прокидываем встроенный токен
+          token: ${{ secrets.GITHUB_TOKEN }}
           branch: gh-pages
           folder: dist
           clean: true
