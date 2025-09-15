@@ -1,201 +1,146 @@
-// scripts/build.mjs
-import { chromium } from 'playwright';
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import cheerio from 'cheerio';
 
-const ROOT = process.cwd();
-const DIST = path.join(ROOT, 'dist');
-const MAP_PATH = path.join(ROOT, 'mapping.json');
-const TIMEOUT_MS = 60000; // таймаут ожиданий на странице
+const __root = process.cwd();
+const DIST = path.join(__root, 'dist');
+const MAPPING_FILE = path.join(__root, 'mapping.json');
+
 const UA =
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36';
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+const FETCH_TIMEOUT_MS = 30000;
 
-function asNumRub(text) {
-  // вытаскиваем число из строки вида "23.07 ₽" / "23,07 ₽"
-  const raw = String(text).replace(/[^\d.,]/g, '').replace(',', '.');
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : 0;
-}
-
-async function readMapping() {
-  const raw = await fs.readFile(MAP_PATH, 'utf8');
-  const data = JSON.parse(raw);
-  if (!Array.isArray(data)) throw new Error('mapping.json должен быть МАССИВОМ объектов');
-  data.forEach((x, i) => {
-    ['key', 'game', 'currency', 'url'].forEach((k) => {
-      if (!x[k]) throw new Error(`mapping[${i}].${k} отсутствует`);
+/** Обёртка fetch с таймаутом */
+async function fetchHtml(url) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'user-agent': UA,
+        'accept':
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'accept-language': 'ru-RU,ru;q=0.9,en;q=0.8',
+        'cache-control': 'no-cache',
+        pragma: 'no-cache'
+      }
     });
-  });
-  return data;
-}
-
-async function ensureDist() {
-  await fs.rm(DIST, { recursive: true, force: true });
-  await fs.mkdir(DIST, { recursive: true });
-}
-
-async function buildViewer() {
-  const html = `<!doctype html>
-<html lang="ru">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>poeopt-rates</title>
-<style>
-  :root{color-scheme:dark light}
-  body{margin:0;font:14px/1.4 system-ui,Segoe UI,Roboto,Arial,sans-serif;background:#0f0f0f;color:#eee}
-  .wrap{max-width:960px;margin:32px auto;padding:0 16px}
-  h1{margin:0 0 12px 0}
-  a{color:#7ec8ff;text-decoration:none}
-  pre{background:#111;border:1px solid #222;border-radius:8px;padding:16px;overflow:auto}
-  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  .meta{opacity:.8;margin:8px 0 16px}
-</style>
-</head>
-<body>
-  <div class="wrap">
-    <h1>poeopt-rates</h1>
-    <div class="meta">Данные: <a href="rates.json">rates.json</a></div>
-    <pre id="out"><code>Загрузка...</code></pre>
-  </div>
-<script>
-  fetch('rates.json', {cache:'no-store'}).then(r=>r.json()).then(data=>{
-    out.textContent = JSON.stringify(data, null, 2);
-  }).catch(err=>{
-    out.textContent = 'Ошибка загрузки rates.json: '+ err;
-  });
-</script>
-</body>
-</html>`;
-  await fs.writeFile(path.join(DIST, 'index.html'), html, 'utf8');
-}
-
-async function scrapePrice(page) {
-  // набор селекторов, которые встречаются на FunPay в ячейке "Цена"
-  const selectors = [
-    '.tc-price', 'td.tc-price', 'div.tc-price', 'span.tc-price',
-    '.c-price'
-  ];
-  // ждём, пока таблица/цены появятся
-  await page.waitForFunction(() => {
-    const sels = ['.tc-price','td.tc-price','div.tc-price','span.tc-price','.c-price','[data-price]'];
-    return sels.some(sel => document.querySelector(sel));
-  }, { timeout: TIMEOUT_MS });
-
-  // 1) пробуем явные ячейки с ценой
-  for (const sel of selectors) {
-    const loc = page.locator(sel).first();
-    if (await loc.count()) {
-      const txt = (await loc.innerText()).trim();
-      const n = asNumRub(txt);
-      if (n > 0) return n;
-    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.text();
+  } finally {
+    clearTimeout(timer);
   }
-  // 2) некоторые узлы держат цену в data-атрибутах
-  const dataPrice = await page.evaluate(() => {
-    const el = document.querySelector('[data-price]');
-    return el ? (el.getAttribute('data-price') || '') : '';
-  });
-  if (dataPrice) {
-    const n = asNumRub(dataPrice);
-    if (n > 0) return n;
-  }
-  // 3) крайний случай — ищем в plain-тексте "N ₽"
-  const bodyText = await page.evaluate(() => document.body.innerText);
-  const m = bodyText.match(/(\d+[.,]\d{1,2})\s*₽/);
-  if (m) {
-    const n = asNumRub(m[1]);
-    if (n > 0) return n;
-  }
-  throw new Error('PRICE_NOT_FOUND');
 }
 
-async function scrapeOne(context, entry) {
-  const page = await context.newPage();
-  page.setDefaultTimeout(TIMEOUT_MS);
+/** Достаём и сортируем цены (минимальная — первая) */
+function extractPrices(html) {
+  const $ = cheerio.load(html);
 
-  // отключаем тяжёлые ресурсы
-  await page.route('**/*', (route) => {
-    const url = route.request().url();
-    if (/\.(png|jpe?g|gif|webp|svg|mp4|avi|mov|webm|woff2?|ttf|otf)$/i.test(url)) {
-      return route.abort();
-    }
-    return route.continue();
+  // Цены лежат в ячейках с классом .tc-price внутри строк .tc-item
+  const prices = [];
+  $('.tc-item .tc-price').each((_, el) => {
+    const raw = $(el).text().trim();
+    // Оставляем только цифры, точку/запятую, убираем пробелы и знак рубля
+    const numStr = raw.replace(/\s/g, '').replace(/[^\d.,-]/g, '').replace(',', '.');
+    const value = parseFloat(numStr);
+    if (!Number.isNaN(value) && value > 0) prices.push(value);
   });
 
-  const res = {
-    game: entry.game,
-    currency: entry.currency,
+  // На всякий: иногда список может быть не отсортирован
+  prices.sort((a, b) => a - b);
+  return prices;
+}
+
+/** Парсим одну страницу FunPay */
+async function scrapeOne(item) {
+  const { key, game, currency, url } = item;
+
+  const pair = {
+    game,
+    currency,
     price_RUB: 0,
     change_24h: null,
     change_7d: null,
-    trades_top5: [],
-    updated_at: new Date().toISOString()
+    updated_at: null,
+    trades_top5: []
   };
 
   try {
-    await page.goto(entry.url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS });
+    const html = await fetchHtml(url);
+    const prices = extractPrices(html);
 
-    // пробуем включить "Только продавцы онлайн" — если есть такой переключатель
-    const online = page.locator('text=Только продавцы онлайн');
-    if (await online.count()) {
-      await online.first().click().catch(()=>{});
-      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(()=>{});
+    if (prices.length > 0) {
+      pair.price_RUB = prices[0]; // минимальная цена
+      pair.updated_at = new Date().toISOString();
+    } else {
+      pair.error = 'no_prices_found';
     }
-
-    const price = await scrapePrice(page);
-    res.price_RUB = price;
   } catch (e) {
-    // записываем причину, но сборку не валим
-    res.error = String(e && e.message ? e.message : e);
-  } finally {
-    await page.close();
+    pair.error = String(e.message || e);
   }
-  return res;
+
+  return [key, pair];
 }
 
 async function main() {
-  const mapping = await readMapping();
-  await ensureDist();
+  const mapping = JSON.parse(await fs.readFile(MAPPING_FILE, 'utf-8'));
 
-  const browser = await chromium.launch({
-    headless: true,
-    args: ['--disable-blink-features=AutomationControlled']
-  });
-  const context = await browser.newContext({
-    userAgent: UA,
-    locale: 'ru-RU',
-    timezoneId: 'Europe/Berlin', // у пользователя — Франкфурт; можно оставить так
-    viewport: { width: 1280, height: 900 }
-  });
-  // маленький "stealth": webdriver = undefined
-  await context.addInitScript(() => {
-    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-  });
-
-  const pairs = {};
-  for (const entry of mapping) {
-    const item = await scrapeOne(context, entry);
-    pairs[entry.key] = item;
-    // небольшой «бэк-офф», чтобы не долбить FunPay слишком быстро
-    await new Promise(r => setTimeout(r, 1000));
-  }
-
-  await browser.close();
-
-  const output = {
+  const out = {
     updated_at: new Date().toISOString(),
     source: 'funpay',
-    pairs
+    pairs: {}
   };
 
-  await fs.writeFile(path.join(DIST, 'rates.json'), JSON.stringify(output, null, 2), 'utf8');
-  await buildViewer();
+  // Ограничим параллелизм до 2, чтобы не спровоцировать антибот
+  const concurrency = 2;
+  for (let i = 0; i < mapping.length; i += concurrency) {
+    const chunk = mapping.slice(i, i + concurrency);
+    const entries = await Promise.all(chunk.map(scrapeOne));
+    for (const [k, v] of entries) out.pairs[k] = v;
+  }
 
-  console.log('OK: dist/rates.json создан, size=', (await fs.stat(path.join(DIST, 'rates.json'))).size);
+  await fs.mkdir(DIST, { recursive: true });
+
+  // rates.json
+  await fs.writeFile(
+    path.join(DIST, 'rates.json'),
+    JSON.stringify(out, null, 2),
+    'utf-8'
+  );
+
+  // index.html (живой просмотр rates.json)
+  const html = `<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>poeopt-rates</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; margin: 24px; background:#0d0f14; color:#e7e9ee; }
+    a { color:#7cc0ff; }
+    pre { white-space: pre-wrap; word-break: break-word; line-height:1.35; }
+    .muted { opacity:.7; font-size:.9rem; }
+  </style>
+</head>
+<body>
+  <h1>poeopt-rates</h1>
+  <p class="muted">Данные: <a href="rates.json">rates.json</a></p>
+  <pre id="out">Загрузка...</pre>
+  <script>
+    fetch('rates.json', {cache:'no-cache'}).then(r=>r.json()).then(j=>{
+      document.getElementById('out').textContent = JSON.stringify(j, null, 2);
+    }).catch(e=>{
+      document.getElementById('out').textContent = 'Ошибка чтения rates.json: ' + e;
+    });
+  </script>
+</body>
+</html>`;
+  await fs.writeFile(path.join(DIST, 'index.html'), html, 'utf-8');
 }
 
-main().catch((e) => {
-  console.error('FATAL:', e);
-  process.exit(1);
+main().catch(async (e) => {
+  console.error(e);
+  process.exitCode = 1;
 });
