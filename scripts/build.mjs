@@ -1,199 +1,170 @@
 // scripts/build.mjs
 import { chromium } from 'playwright';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// ---------- настройка ----------
-const OUT_DIR = path.resolve(__dirname, '../public');
-const OUT_FILE = path.join(OUT_DIR, 'rates.json');
+/* ====== НАСТРОЙКА ====== */
+const OUT_DIR  = path.resolve(__dirname, '../public');           // куда класть rates.json
+const OUT_FILE = path.join(OUT_DIR, 'rates.json');                // файл с результатом
+const MAPPING_PATH = path.resolve(__dirname, '../mapping.json');  // откуда брать список страниц
 
-const NAV_TIMEOUT_MS = 60_000;     // навигация/загрузка страницы
-const PRICE_WAIT_MS = 25_000;      // ожидание появления цены
-const GLOBAL_TIMEOUT_MS = 90_000;  // на один парс одного урла
+// таймауты
+const NAV_TIMEOUT_MS   = 60_000;  // ожидание загрузки страницы
+const PRICE_WAIT_MS    = 45_000;  // ожидание появления цен
+const PER_URL_TIMEOUT  = 90_000;  // «максимум» на одну пару
 
-// читаем mapping.json из КОРНЯ репозитория
-const MAPPING_PATH = path.resolve(__dirname, '../mapping.json');
-// --------------------------------
+// возможные селекторы цены (делаем запас по вариантам верстки)
+const PRICE_SELECTORS = [
+  '.tc-price',                // основной
+  'td.tc-price',
+  'div.tc-price',
+  '.tc-item .tc-price',
+  'a.tc-price',
+  'span.price'
+];
 
-/** Нормализуем текст цены в число RUB */
+/* ====== Утилиты ====== */
+
 function parseRubToNumber(txt) {
   if (!txt) return null;
-  // вычищаем неразрывные пробелы и прочий мусор
-  const cleaned = txt.replace(/\u00A0/g, ' ').replace(/[^\d.,\s]/g, '');
-  // берём первую "числовую группу"
-  const m = cleaned.match(/(\d[\d\s.,]*)/);
-  if (!m) return null;
-  // убираем пробелы-разделители тысяч, запятую меняем на точку
-  const numStr = m[1].replace(/\s/g, '').replace(',', '.');
-  const n = Number(numStr);
-  return Number.isFinite(n) ? n : null;
+  // выкидываем «₽», пробелы, нецифры; заменяем запятую на точку
+  const cleaned = txt
+    .replace(/\s+/g, ' ')
+    .replace(/[^\d.,]/g, '')
+    .trim()
+    .replace(',', '.');
+  const num = Number(cleaned.match(/^\d+(?:\.\d+)?/)?.[0] ?? '');
+  return Number.isFinite(num) ? num : null;
 }
 
-/** Берём текст цены из разных селекторов */
-async function pickPriceText(page) {
-  // 1) ждём любой видимый блок цены
-  const candidates = [
-    '.tc-item .tc-price',
-    'a.tc-item .tc-price',
-    '.tc-price',
-    'span[class*="price"]',
-  ];
-  for (const sel of candidates) {
-    try {
-      const loc = page.locator(sel);
-      await loc.first().waitFor({ state: 'visible', timeout: PRICE_WAIT_MS });
-      const txt = await loc.first().textContent().catch(() => null);
-      if (txt && parseRubToNumber(txt) !== null) return txt;
-    } catch { /* fallthrough */ }
-  }
+async function ensureOutDir() {
+  await mkdir(OUT_DIR, { recursive: true });
+}
 
-  // 2) если не дождались — пробуем собрать тексты у первых N строк
-  const texts = await page.$$eval('a.tc-item, .tc-item', rows =>
-    rows.slice(0, 30).map(r => {
-      const el =
-        r.querySelector('.tc-price') ||
-        r.querySelector('span[class*="price"]') ||
-        r;
-      return el?.textContent || '';
-    }),
-  ).catch(() => []);
-
-  let best = null;
-  for (const t of texts) {
-    const n = parseRubToNumber(t);
-    if (n !== null) {
-      if (best === null || n < best) best = n;
+async function waitForAnySelector(page, selectors, timeout) {
+  const start = Date.now();
+  for (;;) {
+    for (const sel of selectors) {
+      const el = page.locator(`${sel}:visible`).first();
+      if (await el.count().catch(() => 0)) {
+        try {
+          await el.waitFor({ state: 'visible', timeout: 1000 });
+          return sel; // первый сработавший селектор
+        } catch {}
+      }
     }
+    if (Date.now() - start > timeout) {
+      throw new Error(`Timeout ${timeout}ms exceeded while waiting any of selectors: ${selectors.join(', ')}`);
+    }
+    await page.waitForTimeout(300);
   }
-  return best !== null ? String(best) : null;
 }
 
-/** Открываем url и достаём минимальную цену */
-async function scrapeFunpayPrice(page, url) {
-  const urlWithBypassCache = url.includes('?') ? `${url}&_=${Date.now()}` : `${url}?_=${Date.now()}`;
+/* ====== Парсинг одной страницы ====== */
 
-  await page.goto(urlWithBypassCache, {
-    waitUntil: 'domcontentloaded',
-    timeout: NAV_TIMEOUT_MS,
-  });
-
-  // даём странице время дорендерить таблицу
-  await page.waitForTimeout(1200);
-
-  // лёгкий скролл, чтобы триггернуть ленивые списки (если есть)
-  try {
-    await page.mouse.wheel(0, 600);
-    await page.waitForTimeout(400);
-  } catch {}
-
-  // пробуем взять цену (см. pickPriceText)
-  const txt = await pickPriceText(page);
-
-  // если не получилось — последняя попытка: берём HTML и парсим по паттерну "<число> ₽"
-  if (!txt) {
-    const html = await page.content().catch(() => '');
-    const m = html.match(/(\d[\d\s.,]*)\s*₽/);
-    if (m) return parseRubToNumber(m[1]);
-    return null;
-  }
-
-  return parseRubToNumber(txt);
-}
-
-async function main() {
-  const pairs = JSON.parse(await readFile(MAPPING_PATH, 'utf8'));
-
-  const browser = await chromium.launch({ headless: true });
+async function parseFunpayMinPrice(browser, { funpay_url, chips }) {
   const context = await browser.newContext({
     locale: 'ru-RU',
+    timezoneId: 'Europe/Moscow',
     userAgent:
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    timezoneId: 'Europe/Berlin',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0 Safari/537.36',
   });
   const page = await context.newPage();
+
+  // анти-детект по webdriver
+  await page.addInitScript(() => {
+    try { Object.defineProperty(navigator, 'webdriver', { get: () => false }); } catch {}
+  });
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), PER_URL_TIMEOUT);
+
+  try {
+    // Загружаем и ждём «дом-контент загружен»
+    await page.goto(funpay_url, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT_MS });
+
+    // чуть-чуть воздуха, потом ждём стабилизации сети
+    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+
+    // ждём появления хотя бы одной цены по любому из селекторов
+    const usedSelector = await waitForAnySelector(page, PRICE_SELECTORS, PRICE_WAIT_MS);
+
+    // собираем ТЕКСТЫ всех видимых цен в таблице
+    const texts = await page.$$eval(usedSelector, (els) =>
+      els.map((el) => (el?.textContent || '').trim()).filter(Boolean)
+    );
+
+    // приводим к числам и берём минимум
+    const nums = texts.map(parseRubToNumber).filter((n) => Number.isFinite(n) && n > 0);
+    if (!nums.length) throw new Error(`Не удалось распознать цены. Тексты: ${JSON.stringify(texts.slice(0, 8))}`);
+
+    // ВНИМАНИЕ: если «цена за 1000 единиц», раскомментируй строку ниже
+    // const minRub = Math.min(...nums) / (chips || 1);
+
+    const minRub = Math.min(...nums); // если цены уже «за 1»
+    return { ok: true, price_RUB: minRub, usedSelector };
+  } catch (e) {
+    return { ok: false, error: String(e?.message || e) };
+  } finally {
+    clearTimeout(timeout);
+    await page.close().catch(() => {});
+    await context.close().catch(() => {});
+  }
+}
+
+/* ====== Основной скрипт ====== */
+
+async function main() {
+  const mapping = JSON.parse(await readFile(MAPPING_PATH, 'utf8'));
 
   const result = {
     updated_at: new Date().toISOString(),
     source: 'funpay',
-    pairs: {},
+    pairs: {}
   };
 
-  for (const item of pairs) {
-    const key = item.key; // например "poe2:divine-orb"
-    const entry = {
-      game: item.game,
-      currency: item.currency,
-      price_RUB: 0,
-      change_24h: null,
-      change_7d: null,
-      updated_at: null,
-      trades_top5: [],
-    };
+  await ensureOutDir();
 
-    try {
-      const ctrl = Promise.race([
-        (async () => {
-          const price = await scrapeFunpayPrice(page, item.funpay_url);
-          entry.price_RUB = price ?? 0;
-          entry.updated_at = new Date().toISOString();
-        })(),
-        new Promise((_, rej) =>
-          setTimeout(() => rej(new Error('timeout')), GLOBAL_TIMEOUT_MS),
-        ),
-      ]);
-      await ctrl;
+  const browser = await chromium.launch({ headless: true });
+  try {
+    for (const item of mapping) {
+      const key = item.key;
+      const meta = {
+        game: item.game,
+        currency: item.currency,
+        price_RUB: 0,
+        change_24h: null,
+        change_7d: null,
+        updated_at: new Date().toISOString(),
+        trades_top5: []
+      };
 
-      if (!entry.price_RUB) {
-        // сохраним диагностическое поле, но без падения сборки
-        entry.error = 'price_not_found';
+      const r = await parseFunpayMinPrice(browser, item);
+      if (r.ok) {
+        meta.price_RUB = r.price_RUB;
+        meta.used_selector = r.usedSelector;
+      } else {
+        meta.error = r.error;
       }
-    } catch (e) {
-      entry.updated_at = new Date().toISOString();
-      entry.price_RUB = 0;
-      entry.trades_top5 = [];
-      entry.error = String(e && e.message ? e.message : e);
-    }
 
-    result.pairs[key] = entry;
+      result.pairs[key] = meta;
+
+      // лёгкая пауза, чтобы не долбить сайт
+      await new Promise(res => setTimeout(res, 1500));
+    }
+  } finally {
+    await browser.close().catch(() => {});
   }
 
-  await browser.close();
-
-  await mkdir(OUT_DIR, { recursive: true });
   await writeFile(OUT_FILE, JSON.stringify(result, null, 2), 'utf8');
-
-  // опционально: добавим простую страницу-предпросмотр в корень, если у тебя её нет
-  const indexPath = path.join(OUT_DIR, 'index.html');
-  const indexHtml = `<!doctype html>
-<html lang="ru">
-<meta charset="utf-8">
-<title>poeopt-rates</title>
-<style>
-  body { background:#0b0b0b; color:#ddd; font:14px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; padding:26px; }
-  a { color:#6aa7ff; }
-  pre { background:#111; border:1px solid #222; border-radius:10px; padding:16px; overflow:auto; }
-</style>
-<h1>poeopt-rates</h1>
-<p>Данные: <a href="rates.json">rates.json</a></p>
-<pre id="out">Загрузка…</pre>
-<script type="module">
-  const res = await fetch('./rates.json?ts=' + Date.now());
-  const json = await res.json();
-  document.getElementById('out').textContent = JSON.stringify(json, null, 2);
-</script>
-</html>`;
-  try {
-    // не перезаписываем, если уже есть свой index.html
-    await writeFile(indexPath, indexHtml, { flag: 'wx' });
-  } catch { /* уже существует — ок */ }
-
-  console.log('OK: written', OUT_FILE);
+  console.log('DONE:', OUT_FILE);
 }
 
-main().catch(err => {
-  console.error('FATAL:', err);
-  process.exit(1);
+main().catch((e) => {
+  console.error('FATAL:', e);
+  process.exitCode = 1;
 });
