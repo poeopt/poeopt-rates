@@ -1,46 +1,46 @@
 {
-  "updated_at": "2025-09-14T23:54:03.792Z",
+  "updated_at": "2025-09-15T00:16:18.156Z",
   "source": "funpay",
   "pairs": {
-    "poe2:divine-orb": {
-      "game": "poe2",
-      "currency": "divine-orb",
+    "Last-Epoch-gold": {
+      "game": "Last-Epoch",
+      "currency": "gold",
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-14T23:52:53.222Z",
+      "updated_at": "2025-09-15T00:14:43.859Z",
       "trades_top5": [],
-      "error": "page.waitForFunction: Timeout 20000ms exceeded."
+      "error": "page.waitForFunction: Timeout 30000ms exceeded."
     },
-    "poe1:divine-orb": {
-      "game": "poe1",
-      "currency": "divine-orb",
-      "price_RUB": 0,
-      "change_24h": null,
-      "change_7d": null,
-      "updated_at": "2025-09-14T23:53:16.622Z",
-      "trades_top5": [],
-      "error": "page.waitForFunction: Timeout 20000ms exceeded."
-    },
-    "tli:flame-elementium": {
+    "tli-flame-elementium": {
       "game": "tli",
       "currency": "flame-elementium",
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-14T23:53:40.727Z",
+      "updated_at": "2025-09-15T00:15:15.084Z",
       "trades_top5": [],
-      "error": "page.waitForFunction: Timeout 20000ms exceeded."
+      "error": "page.waitForFunction: Timeout 30000ms exceeded."
     },
-    "le:gold": {
-      "game": "le",
-      "currency": "gold",
+    "poe2-divine-orb": {
+      "game": "poe2",
+      "currency": "divine-orb",
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-14T23:54:03.759Z",
+      "updated_at": "2025-09-15T00:15:46.839Z",
       "trades_top5": [],
-      "error": "page.waitForFunction: Timeout 20000ms exceeded."
+      "error": "page.waitForFunction: Timeout 30000ms exceeded."
+    },
+    "poe1-divine-orb": {
+      "game": "poe1",
+      "currency": "divine-orb",
+      "price_RUB": 0,
+      "change_24h": null,
+      "change_7d": null,
+      "updated_at": "2025-09-15T00:16:18.130Z",
+      "trades_top5": [],
+      "error": "page.waitForFunction: Timeout 30000ms exceeded."
     }
   }
 }

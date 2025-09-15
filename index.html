@@ -1,28 +1,4 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<!doctype html><html lang="ru"><meta charset="utf-8">
 <title>poeopt-rates</title>
-<style>
-  body{background:#111;color:#ddd;font:16px/1.4 system-ui,Segoe UI,Roboto,Arial}
-  a{color:#8fd}
-  .box{max-width:820px;margin:48px auto;padding:16px}
-  pre{background:#181818;padding:12px;border-radius:8px;overflow:auto}
-</style>
-</head>
-<body>
-  <div class="box">
-    <h1>poeopt-rates</h1>
-    <p>Данные: <a href="./rates.json">rates.json</a></p>
-    <pre id="json">Загрузка...</pre>
-  </div>
-<script>
-fetch('./rates.json').then(r=>r.json()).then(j=>{
-  document.getElementById('json').textContent = JSON.stringify(j,null,2);
-}).catch(e=>{
-  document.getElementById('json').textContent = 'Ошибка: '+e;
-});
-</script>
-</body>
-</html>
+<style>body{background:#111;color:#ddd;font:16px/1.5 system-ui,Segoe UI,Roboto,Arial;padding:24px}a{color:#8fd}</style>
+<h1>poeopt-rates</h1><p>Данные: <a href="./rates.json">rates.json</a></p>
