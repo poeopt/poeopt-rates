@@ -1,12 +1,12 @@
 {
   "name": "poeopt-rates",
-  "version": "1.0.0",
-  "type": "module",
+  "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs"
   },
   "dependencies": {
-    "cheerio": "^1.0.0-rc.12"
+    "playwright": "^1.47.2"
   }
 }
