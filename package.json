@@ -7,6 +7,6 @@
     "build": "node scripts/build.mjs"
   },
   "dependencies": {
-    "playwright": "^1.47.2"
+    "cheerio": "^1.0.0-rc.12"
   }
 }
