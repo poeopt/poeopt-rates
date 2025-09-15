@@ -3,23 +3,63 @@
 <head>
   <meta charset="utf-8">
   <title>poeopt-rates</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body{background:#0f0f0f;color:#eee;font-family:ui-monospace,Menlo,Consolas,monospace;margin:40px}
-    a{color:#8bd5ff}
-    pre{white-space:pre-wrap;word-break:break-word;background:#151515;border-radius:10px;padding:20px;line-height:1.35}
+    body{background:#0f0f0f;color:#eee;font:16px/1.4 system-ui,Segoe UI,Roboto,Arial}
+    .wrap{max-width:1000px;margin:40px auto;padding:0 16px}
+    h1{margin:0 0 12px}
+    .muted{color:#aaa}
+    table{width:100%;border-collapse:collapse;margin-top:16px}
+    th,td{padding:10px;border-bottom:1px solid #222;text-align:left}
+    th{color:#bbb;font-weight:600}
+    .num{text-align:right;font-variant-numeric:tabular-nums}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#1c1c1c;color:#ddd;font-size:12px}
+    a{color:#9ad}
   </style>
 </head>
 <body>
+<div class="wrap">
   <h1>poeopt-rates</h1>
-  <p>Данные: <a href="rates.json">rates.json</a></p>
-  <pre id="out">Загрузка…</pre>
-  <script>
-    fetch('rates.json').then(r=>r.json()).then(j=>{
-      document.getElementById('out').textContent = JSON.stringify(j, null, 2);
-    }).catch(e=>{
-      document.getElementById('out').textContent = 'Ошибка загрузки: ' + e;
-    });
-  </script>
+  <div class="muted">Источник: Funpay · <a href="./rates.json">rates.json</a></div>
+
+  <table id="tbl">
+    <thead>
+      <tr>
+        <th>key</th>
+        <th>Игра</th>
+        <th>Валюта</th>
+        <th class="num">Цена, ₽</th>
+        <th>Обновлено</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+(async () => {
+  const res = await fetch('./rates.json', {cache:'no-store'});
+  const data = await res.json();
+  const tbody = document.querySelector('#tbl tbody');
+  const pairs = data.pairs || {};
+  const keys = Object.keys(pairs);
+  if (!keys.length) {
+    tbody.innerHTML = '<tr><td colspan="5">Нет данных</td></tr>';
+    return;
+  }
+  for (const k of keys) {
+    const p = pairs[k];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="pill">${k}</span></td>
+      <td>${p.game ?? ''}</td>
+      <td>${p.currency ?? ''}</td>
+      <td class="num">${(p.price_RUB ?? 0).toFixed(2)}</td>
+      <td>${(p.updated_at ?? '').replace('T',' ').replace('Z','')}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+})();
+</script>
 </body>
 </html>
