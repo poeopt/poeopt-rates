@@ -1,12 +1,13 @@
 {
   "name": "poeopt-rates",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
+  "private": true,
   "scripts": {
     "build": "node scripts/build.mjs"
   },
   "dependencies": {
-    "playwright": "^1.47.2"
+    "playwright": "^1.47.2",
+    "undici": "^6.19.8"
   }
 }
