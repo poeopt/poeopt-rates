@@ -3,7 +3,7 @@ name: Build & Publish rates.json
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/30 * * * *'  # каждые 30 минут
+    - cron: "*/15 * * * *"  # каждые 15 минут
 
 permissions:
   contents: write
@@ -12,31 +12,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node 20
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "20"
 
-      - name: Install deps (+ Chromium для Playwright)
+      - name: Install deps (Playwright + Chromium)
         run: |
-          npm install
+          npm i --no-audit --no-fund
           npx playwright install --with-deps chromium
 
       - name: Build rates.json
         run: npm run build
-
-      - name: Upload debug (если есть)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug
-          path: debug/**
-          if-no-files-found: ignore
-          retention-days: 3
 
       - name: Publish to gh-pages
         uses: JamesIves/github-pages-deploy-action@v4
