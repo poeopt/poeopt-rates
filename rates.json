@@ -1,46 +1,46 @@
 {
-  "updated_at": "2025-09-15T00:16:18.156Z",
+  "updated_at": "2025-09-15T09:17:18.225Z",
   "source": "funpay",
   "pairs": {
-    "Last-Epoch-gold": {
-      "game": "Last-Epoch",
+    "le:gold": {
+      "game": "le",
       "currency": "gold",
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-15T00:14:43.859Z",
+      "updated_at": "2025-09-15T09:17:18.225Z",
       "trades_top5": [],
-      "error": "page.waitForFunction: Timeout 30000ms exceeded."
+      "error": "page.waitForSelector: Timeout 45000ms exceeded.\nCall log:\n  - waiting for locator('div.tc-item .tc-price') to be visible\n"
     },
-    "tli-flame-elementium": {
+    "tli:flame-elementium": {
       "game": "tli",
       "currency": "flame-elementium",
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-15T00:15:15.084Z",
+      "updated_at": "2025-09-15T09:17:18.225Z",
       "trades_top5": [],
-      "error": "page.waitForFunction: Timeout 30000ms exceeded."
+      "error": "page.waitForSelector: Timeout 45000ms exceeded.\nCall log:\n  - waiting for locator('div.tc-item .tc-price') to be visible\n"
     },
-    "poe2-divine-orb": {
+    "poe2:divine-orb": {
       "game": "poe2",
       "currency": "divine-orb",
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-15T00:15:46.839Z",
+      "updated_at": "2025-09-15T09:17:18.225Z",
       "trades_top5": [],
-      "error": "page.waitForFunction: Timeout 30000ms exceeded."
+      "error": "page.waitForSelector: Timeout 45000ms exceeded.\nCall log:\n  - waiting for locator('div.tc-item .tc-price') to be visible\n"
     },
-    "poe1-divine-orb": {
+    "poe1:divine-orb": {
       "game": "poe1",
       "currency": "divine-orb",
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-15T00:16:18.130Z",
+      "updated_at": "2025-09-15T09:17:18.225Z",
       "trades_top5": [],
-      "error": "page.waitForFunction: Timeout 30000ms exceeded."
+      "error": "page.waitForSelector: Timeout 45000ms exceeded.\nCall log:\n  - waiting for locator('div.tc-item .tc-price') to be visible\n"
     }
   }
 }

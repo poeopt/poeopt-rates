@@ -1,4 +1,25 @@
-<!doctype html><html lang="ru"><meta charset="utf-8">
-<title>poeopt-rates</title>
-<style>body{background:#111;color:#ddd;font:16px/1.5 system-ui,Segoe UI,Roboto,Arial;padding:24px}a{color:#8fd}</style>
-<h1>poeopt-rates</h1><p>Данные: <a href="./rates.json">rates.json</a></p>
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>poeopt-rates</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{background:#0f0f0f;color:#eee;font-family:ui-monospace,Menlo,Consolas,monospace;margin:40px}
+    a{color:#8bd5ff}
+    pre{white-space:pre-wrap;word-break:break-word;background:#151515;border-radius:10px;padding:20px;line-height:1.35}
+  </style>
+</head>
+<body>
+  <h1>poeopt-rates</h1>
+  <p>Данные: <a href="rates.json">rates.json</a></p>
+  <pre id="out">Загрузка…</pre>
+  <script>
+    fetch('rates.json').then(r=>r.json()).then(j=>{
+      document.getElementById('out').textContent = JSON.stringify(j, null, 2);
+    }).catch(e=>{
+      document.getElementById('out').textContent = 'Ошибка загрузки: ' + e;
+    });
+  </script>
+</body>
+</html>
