@@ -1,26 +1,27 @@
 name: Build & Publish rates.json
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "*/15 * * * *"  # каждые 15 минут
+    - cron: "*/20 * * * *" # раз в 20 минут; при желании поменяйте
+  workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: poeopt-rates-deploy
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
 
       - name: Install deps (Playwright + Chromium)
         run: |
