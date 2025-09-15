@@ -1,15 +1,14 @@
 {
   "name": "poeopt-rates",
   "version": "1.0.0",
-  "type": "commonjs",
+  "type": "module",
   "private": true,
   "scripts": {
-    "build": "node scripts/build.cjs"
+    "build": "node scripts/build.mjs",
+    "postinstall": "npx playwright install --with-deps chromium"
   },
   "dependencies": {
-    "playwright": "^1.47.0"
-  },
-  "engines": {
-    "node": ">=18"
+    "cheerio": "^1.0.0-rc.12",
+    "playwright": "^1.45.3"
   }
 }
