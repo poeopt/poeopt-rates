@@ -1,13 +1,9 @@
 name: Build & Publish rates.json
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "*/15 * * * *"  # каждые 15 минут
-
-concurrency:
-  group: poeopt-rates
-  cancel-in-progress: true
+    - cron: "*/15 * * * *"   # каждые 15 минут
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,7 +12,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,7 +19,7 @@ jobs:
       - name: Setup Node 20
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "20"
 
       - name: Install deps (+ Chromium для Playwright)
         run: |
@@ -39,12 +34,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: debug-screens
-          path: debug/*
+          path: debug/**
           if-no-files-found: ignore
+          retention-days: 7
 
       - name: Publish to gh-pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          branch: gh-pages
           folder: dist
+          branch: gh-pages
           clean: true
