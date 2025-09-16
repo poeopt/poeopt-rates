@@ -6,135 +6,164 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// ====== НАСТРОЙКИ ======
-const OUT_DIR  = path.resolve(__dirname, '../public');
+// Куда пишем
+const OUT_DIR = path.resolve(__dirname, '../public');
 const OUT_FILE = path.join(OUT_DIR, 'rates.json');
+const DEBUG_DIR = path.resolve(__dirname, '../debug');
+
+// Что парсим
 const MAPPING_PATH = path.resolve(__dirname, '../mapping.json');
 
-const NAV_TIMEOUT_MS    = 60_000; // переходы по страницам
-const PRICE_WAIT_MS     = 25_000; // ожидание появления цены
-const GLOBAL_TIMEOUT_MS = 90_000; // на одну пару
+// Тайминги
+const NAV_TIMEOUT_MS = 60_000;
+const PRICE_WAIT_MS = 25_000;
+const GLOBAL_TIMEOUT_MS = 90_000;
+const WAIT_AFTER_SELECT_MS = 1_200;
 
-// ====== УТИЛИТЫ ======
-function parseRub(text) {
-  if (!text) return null;
-  // выкидываем всё лишнее, оставляем числа и запятую/точку
-  const cleaned = text.replace(/[^\d.,]/g, '').replace(/\s+/g, '');
-  if (!cleaned) return null;
-  // меняем запятую на точку
-  const normalized = cleaned.replace(',', '.');
-  const number = Number(normalized);
-  return Number.isFinite(number) ? number : null;
+// ---------- утилиты ----------
+function parseRUB(text) {
+  if (!text) return NaN;
+  const cleaned = String(text)
+    .replace(/\u00A0/g, ' ')     // неразрывные пробелы → обычные
+    .replace(/[^\d,.\s]/g, '')   // лишние символы
+    .trim();
+
+  // убираем пробелы-разделители тысяч и приводим запятую к точке
+  const num = cleaned.replace(/\s+/g, '').replace(',', '.');
+  const n = Number(num);
+  return Number.isFinite(n) ? n : NaN;
 }
 
-async function pickPrice(page) {
-  // Несколько селекторов на случай, если разметка немного отличается
-  const selectors = [
-    '.tc-item .tc-price',           // ячейка цены в строке таблицы
-    '.tc-price',                    // просто ячейка цены
-    'table .tc-item .tc-price',     // запасной вариант
-  ];
+function avg(arr) {
+  if (!arr.length) return NaN;
+  return +(arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2);
+}
 
-  for (const sel of selectors) {
+/**
+ * Попытка выбрать нужную лигу/сервер на странице по точному тексту.
+ * Сначала пытаемся через нативный <select>, затем через клик по кастомному дропдауну.
+ */
+async function smartSelectLeague(page, wantedText) {
+  if (!wantedText) return 'skip';
+
+  // 1) Пытаемся найти НАТИВНЫЙ <select> с такой опцией
+  const viaSelect = await page.evaluate((label) => {
+    const selects = Array.from(document.querySelectorAll('select'));
+    for (const s of selects) {
+      const opt = Array.from(s.options).find(o => o.textContent.trim() === label);
+      if (opt) {
+        s.value = opt.value;
+        s.dispatchEvent(new Event('input', { bubbles: true }));
+        s.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+      }
+    }
+    return false;
+  }, wantedText);
+
+  if (viaSelect) return 'select';
+
+  // 2) Пытаемся кликнуть по кастомному дропдауну
+  try {
+    // Открываем любой видимый триггер дропа рядом с таблицей
+    const togglers = page
+      .locator('button,[role="button"],.select,.custom-select,.cs-select,.fc-select')
+      .filter({ hasNotText: /Только продавцы онлайн|Only online/i });
+
+    await togglers.first().click({ timeout: 2000 }).catch(() => {});
+    await page.getByText(wantedText, { exact: true }).first().click({ timeout: 2000 });
+    return 'click';
+  } catch {
+    // 3) Последняя попытка — клик прямо по тексту (вдруг пункты видимы постоянно)
     try {
-      const loc = page.locator(sel).first();
-      await loc.waitFor({ state: 'visible', timeout: PRICE_WAIT_MS });
-      const raw = await loc.textContent().catch(() => null);
-      const num = parseRub(raw);
-      if (num !== null && num > 0) return num;
-    } catch { /* пробуем следующий селектор */ }
+      await page.getByText(wantedText, { exact: true }).first().click({ timeout: 2000 });
+      return 'click2';
+    } catch {
+      return 'fail';
+    }
   }
-  return null;
 }
 
-async function fetchOne(browser, conf) {
-  const url = conf.url ?? conf.funpay_url; // совместимость со старой схемой
-  const key = conf.key ?? `${conf.game}:${conf.currency}`;
+async function grabTopPrices(page, limit = 8) {
+  // ждём, пока появятся строки
+  await page.waitForSelector('.tc-item', { timeout: PRICE_WAIT_MS });
+  const raw = await page.$$eval('.tc-item .tc-price', els =>
+    els.slice(0, 20).map(e => e.textContent)
+  );
+  const nums = raw.map(parseRUB).filter(n => Number.isFinite(n) && n > 0);
+  return nums.slice(0, limit);
+}
 
-  const ctx = await browser.newContext({
-    userAgent:
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-      '(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-  });
-  const page = await ctx.newPage();
-
-  let price = 0;
-  let error = null;
-  const started = Date.now();
+async function collectPair(page, cfg) {
+  const result = {
+    game: cfg.game,
+    currency: cfg.currency,
+    price_RUB: 0,
+    change_24h: null,
+    change_7d: null,
+    updated_at: new Date().toISOString(),
+    trades_top5: [],
+    error: null
+  };
 
   try {
-    if (!url) throw new Error('no url in mapping');
+    await page.goto(cfg.funpay_url, { timeout: NAV_TIMEOUT_MS, waitUntil: 'domcontentloaded' });
 
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT_MS });
+    if (cfg.league) {
+      await smartSelectLeague(page, cfg.league);
+      await page.waitForTimeout(WAIT_AFTER_SELECT_MS);
+    }
 
-    // иногда помогает – ждём добивки ресурсов и скрываем оффлайн
-    await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
-    await page.locator('text=Только продавцы онлайн').click({ timeout: 2_000 }).catch(() => {});
+    // гарантируем, что хотя бы одна цена видна
+    await page.waitForSelector('.tc-item .tc-price', { timeout: PRICE_WAIT_MS });
 
-    // читаем цену
-    const got = await pickPrice(page);
-    price = got ?? 0;
+    const top = await grabTopPrices(page, 5);
+    result.trades_top5 = top.map(v => +v.toFixed(2));
+
+    if (top.length) {
+      const n = Math.max(1, Math.min(cfg.avg_top ?? 3, top.length)); // по умолчанию среднее первых 3
+      result.price_RUB = avg(top.slice(0, n));
+    } else {
+      result.error = 'prices_not_found';
+    }
   } catch (e) {
-    error = String(e?.message || e);
-  } finally {
-    await ctx.close();
+    result.error = String(e?.message ?? e);
   }
 
-  const updated_at = new Date().toISOString();
-  return {
-    key,
-    data: {
-      game: conf.game,
-      currency: conf.currency,
-      price_RUB: price,
-      change_24h: null,
-      change_7d: null,
-      updated_at,
-      trades_top5: [],
-      ...(error ? { error } : {}),
-    },
-  };
+  // Скрин дебага (даже если упало)
+  try {
+    await mkdir(DEBUG_DIR, { recursive: true });
+    await page.screenshot({ path: path.join(DEBUG_DIR, `${cfg.key || `${cfg.game}-${cfg.currency}`}.png`), fullPage: true });
+  } catch {}
+
+  return result;
 }
 
 async function main() {
-  const mapping = JSON.parse(await readFile(MAPPING_PATH, 'utf8'));
+  const mapping = JSON.parse(await readFile(MAPPING_PATH, 'utf-8'));
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, timeout: GLOBAL_TIMEOUT_MS });
+  const page = await browser.newPage();
 
-  const pairs = {};
-  const tasks = mapping.map(async (conf) => {
-    const t = fetchOne(browser, conf);
-    const r = await Promise.race([
-      t,
-      new Promise((_, rej) => setTimeout(() => rej(new Error('global-timeout')), GLOBAL_TIMEOUT_MS))
-    ]).catch(e => ({ key: conf.key ?? `${conf.game}:${conf.currency}`, data: {
-      game: conf.game,
-      currency: conf.currency,
-      price_RUB: 0,
-      change_24h: null,
-      change_7d: null,
-      updated_at: new Date().toISOString(),
-      trades_top5: [],
-      error: String(e?.message || e),
-    }}));
+  const out = {
+    updated_at: new Date().toISOString(),
+    source: 'funpay',
+    pairs: {}
+  };
 
-    pairs[r.key] = r.data;
-  });
+  for (const cfg of mapping) {
+    const key = cfg.key ?? `${cfg.game}:${cfg.currency}`;
+    out.pairs[key] = await collectPair(page, cfg);
+  }
 
-  await Promise.all(tasks);
   await browser.close();
 
   await mkdir(OUT_DIR, { recursive: true });
-  const payload = {
-    updated_at: new Date().toISOString(),
-    source: 'funpay',
-    pairs,
-  };
-  await writeFile(OUT_FILE, JSON.stringify(payload, null, 2), 'utf8');
-  console.log('DONE:', OUT_FILE);
+  await writeFile(OUT_FILE, JSON.stringify(out, null, 2), 'utf-8');
+  console.log('Saved:', OUT_FILE);
 }
 
-main().catch((e) => {
-  console.error(e);
+main().catch(err => {
+  console.error(err);
   process.exit(1);
 });
