@@ -3,28 +3,32 @@
     "key": "le:gold",
     "game": "le",
     "currency": "gold",
-    "chips": 200,
-    "url": "https://funpay.com/chips/200/"
+    "funpay_url": "https://funpay.com/chips/200/",
+    "league": "Beneath Ancient Skies (Standard)",               // Last Epoch: нужная лига
+    "avg_top": 3
   },
   {
     "key": "tli:flame-elementium",
     "game": "tli",
     "currency": "flame-elementium",
-    "chips": 177,
-    "url": "https://funpay.com/chips/177/"
+    "funpay_url": "https://funpay.com/chips/177/",
+    "league": "(EU) Outlaw Season",              // Torchlight Infinite: нужный сервер/сезон
+    "avg_top": 3
   },
   {
     "key": "poe2:divine-orb",
     "game": "poe2",
     "currency": "divine-orb",
-    "chips": 209,
-    "url": "https://funpay.com/chips/209/"
+    "funpay_url": "https://funpay.com/lots/poe2/currencies/209/",
+    "league": "Rise of the Abyssal",             // PoE2: актуальная лига
+    "avg_top": 3
   },
   {
     "key": "poe1:divine-orb",
     "game": "poe1",
     "currency": "divine-orb",
-    "chips": 173,
-    "url": "https://funpay.com/chips/173/"
+    "funpay_url": "https://funpay.com/lots/poe/currencies/173/",
+    "league": "(PC) Mercenaries",                // PoE1: актуальная лига
+    "avg_top": 3
   }
 ]
