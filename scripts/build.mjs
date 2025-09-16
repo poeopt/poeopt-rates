@@ -39,6 +39,14 @@ function avg(arr) {
   return +(arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2);
 }
 
+// Делает безопасное имя файла для артефактов GitHub Actions
+function safeName(s) {
+  return String(s)
+    .replaceAll('/', '-')                // на всякий
+    .replace(/[":<>|*?\r\n]/g, '_')      // экшен не принимает эти символы
+    .slice(0, 120) || 'screen';
+}
+
 /**
  * Попытка выбрать нужную лигу/сервер на странице по точному тексту.
  * Сначала пытаемся через нативный <select>, затем через клик по кастомному дропдауну.
@@ -46,7 +54,7 @@ function avg(arr) {
 async function smartSelectLeague(page, wantedText) {
   if (!wantedText) return 'skip';
 
-  // 1) Пытаемся найти НАТИВНЫЙ <select> с такой опцией
+  // 1) НАТИВНЫЙ <select>
   const viaSelect = await page.evaluate((label) => {
     const selects = Array.from(document.querySelectorAll('select'));
     for (const s of selects) {
@@ -63,9 +71,8 @@ async function smartSelectLeague(page, wantedText) {
 
   if (viaSelect) return 'select';
 
-  // 2) Пытаемся кликнуть по кастомному дропдауну
+  // 2) Кастомный дропдаун
   try {
-    // Открываем любой видимый триггер дропа рядом с таблицей
     const togglers = page
       .locator('button,[role="button"],.select,.custom-select,.cs-select,.fc-select')
       .filter({ hasNotText: /Только продавцы онлайн|Only online/i });
@@ -74,7 +81,7 @@ async function smartSelectLeague(page, wantedText) {
     await page.getByText(wantedText, { exact: true }).first().click({ timeout: 2000 });
     return 'click';
   } catch {
-    // 3) Последняя попытка — клик прямо по тексту (вдруг пункты видимы постоянно)
+    // 3) Прямой клик по тексту
     try {
       await page.getByText(wantedText, { exact: true }).first().click({ timeout: 2000 });
       return 'click2';
@@ -85,8 +92,7 @@ async function smartSelectLeague(page, wantedText) {
 }
 
 async function grabTopPrices(page, limit = 8) {
-  // ждём, пока появятся строки
-  await page.waitForSelector('.tc-item', { timeout: PRICE_WAIT_MS });
+  await page.waitForSelector('.tc-item .tc-price', { timeout: PRICE_WAIT_MS });
   const raw = await page.$$eval('.tc-item .tc-price', els =>
     els.slice(0, 20).map(e => e.textContent)
   );
@@ -114,7 +120,6 @@ async function collectPair(page, cfg) {
       await page.waitForTimeout(WAIT_AFTER_SELECT_MS);
     }
 
-    // гарантируем, что хотя бы одна цена видна
     await page.waitForSelector('.tc-item .tc-price', { timeout: PRICE_WAIT_MS });
 
     const top = await grabTopPrices(page, 5);
@@ -130,10 +135,11 @@ async function collectPair(page, cfg) {
     result.error = String(e?.message ?? e);
   }
 
-  // Скрин дебага (даже если упало)
+  // Скрин дебага (даже если упало) — с безопасным именем
   try {
     await mkdir(DEBUG_DIR, { recursive: true });
-    await page.screenshot({ path: path.join(DEBUG_DIR, `${cfg.key || `${cfg.game}-${cfg.currency}`}.png`), fullPage: true });
+    const base = safeName(cfg.key || `${cfg.game}-${cfg.currency}`);
+    await page.screenshot({ path: path.join(DEBUG_DIR, `${base}.png`), fullPage: true });
   } catch {}
 
   return result;
