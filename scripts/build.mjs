@@ -1,170 +1,140 @@
 // scripts/build.mjs
 import { chromium } from 'playwright';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/* ====== НАСТРОЙКА ====== */
-const OUT_DIR  = path.resolve(__dirname, '../public');           // куда класть rates.json
-const OUT_FILE = path.join(OUT_DIR, 'rates.json');                // файл с результатом
-const MAPPING_PATH = path.resolve(__dirname, '../mapping.json');  // откуда брать список страниц
+// ====== НАСТРОЙКИ ======
+const OUT_DIR  = path.resolve(__dirname, '../public');
+const OUT_FILE = path.join(OUT_DIR, 'rates.json');
+const MAPPING_PATH = path.resolve(__dirname, '../mapping.json');
 
-// таймауты
-const NAV_TIMEOUT_MS   = 60_000;  // ожидание загрузки страницы
-const PRICE_WAIT_MS    = 45_000;  // ожидание появления цен
-const PER_URL_TIMEOUT  = 90_000;  // «максимум» на одну пару
+const NAV_TIMEOUT_MS    = 60_000; // переходы по страницам
+const PRICE_WAIT_MS     = 25_000; // ожидание появления цены
+const GLOBAL_TIMEOUT_MS = 90_000; // на одну пару
 
-// возможные селекторы цены (делаем запас по вариантам верстки)
-const PRICE_SELECTORS = [
-  '.tc-price',                // основной
-  'td.tc-price',
-  'div.tc-price',
-  '.tc-item .tc-price',
-  'a.tc-price',
-  'span.price'
-];
-
-/* ====== Утилиты ====== */
-
-function parseRubToNumber(txt) {
-  if (!txt) return null;
-  // выкидываем «₽», пробелы, нецифры; заменяем запятую на точку
-  const cleaned = txt
-    .replace(/\s+/g, ' ')
-    .replace(/[^\d.,]/g, '')
-    .trim()
-    .replace(',', '.');
-  const num = Number(cleaned.match(/^\d+(?:\.\d+)?/)?.[0] ?? '');
-  return Number.isFinite(num) ? num : null;
+// ====== УТИЛИТЫ ======
+function parseRub(text) {
+  if (!text) return null;
+  // выкидываем всё лишнее, оставляем числа и запятую/точку
+  const cleaned = text.replace(/[^\d.,]/g, '').replace(/\s+/g, '');
+  if (!cleaned) return null;
+  // меняем запятую на точку
+  const normalized = cleaned.replace(',', '.');
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : null;
 }
 
-async function ensureOutDir() {
-  await mkdir(OUT_DIR, { recursive: true });
-}
+async function pickPrice(page) {
+  // Несколько селекторов на случай, если разметка немного отличается
+  const selectors = [
+    '.tc-item .tc-price',           // ячейка цены в строке таблицы
+    '.tc-price',                    // просто ячейка цены
+    'table .tc-item .tc-price',     // запасной вариант
+  ];
 
-async function waitForAnySelector(page, selectors, timeout) {
-  const start = Date.now();
-  for (;;) {
-    for (const sel of selectors) {
-      const el = page.locator(`${sel}:visible`).first();
-      if (await el.count().catch(() => 0)) {
-        try {
-          await el.waitFor({ state: 'visible', timeout: 1000 });
-          return sel; // первый сработавший селектор
-        } catch {}
-      }
-    }
-    if (Date.now() - start > timeout) {
-      throw new Error(`Timeout ${timeout}ms exceeded while waiting any of selectors: ${selectors.join(', ')}`);
-    }
-    await page.waitForTimeout(300);
+  for (const sel of selectors) {
+    try {
+      const loc = page.locator(sel).first();
+      await loc.waitFor({ state: 'visible', timeout: PRICE_WAIT_MS });
+      const raw = await loc.textContent().catch(() => null);
+      const num = parseRub(raw);
+      if (num !== null && num > 0) return num;
+    } catch { /* пробуем следующий селектор */ }
   }
+  return null;
 }
 
-/* ====== Парсинг одной страницы ====== */
+async function fetchOne(browser, conf) {
+  const url = conf.url ?? conf.funpay_url; // совместимость со старой схемой
+  const key = conf.key ?? `${conf.game}:${conf.currency}`;
 
-async function parseFunpayMinPrice(browser, { funpay_url, chips }) {
-  const context = await browser.newContext({
-    locale: 'ru-RU',
-    timezoneId: 'Europe/Moscow',
+  const ctx = await browser.newContext({
     userAgent:
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+      '(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
   });
-  const page = await context.newPage();
+  const page = await ctx.newPage();
 
-  // анти-детект по webdriver
-  await page.addInitScript(() => {
-    try { Object.defineProperty(navigator, 'webdriver', { get: () => false }); } catch {}
-  });
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), PER_URL_TIMEOUT);
+  let price = 0;
+  let error = null;
+  const started = Date.now();
 
   try {
-    // Загружаем и ждём «дом-контент загружен»
-    await page.goto(funpay_url, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT_MS });
+    if (!url) throw new Error('no url in mapping');
 
-    // чуть-чуть воздуха, потом ждём стабилизации сети
-    await page.waitForTimeout(1500);
-    await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT_MS });
 
-    // ждём появления хотя бы одной цены по любому из селекторов
-    const usedSelector = await waitForAnySelector(page, PRICE_SELECTORS, PRICE_WAIT_MS);
+    // иногда помогает – ждём добивки ресурсов и скрываем оффлайн
+    await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
+    await page.locator('text=Только продавцы онлайн').click({ timeout: 2_000 }).catch(() => {});
 
-    // собираем ТЕКСТЫ всех видимых цен в таблице
-    const texts = await page.$$eval(usedSelector, (els) =>
-      els.map((el) => (el?.textContent || '').trim()).filter(Boolean)
-    );
-
-    // приводим к числам и берём минимум
-    const nums = texts.map(parseRubToNumber).filter((n) => Number.isFinite(n) && n > 0);
-    if (!nums.length) throw new Error(`Не удалось распознать цены. Тексты: ${JSON.stringify(texts.slice(0, 8))}`);
-
-    // ВНИМАНИЕ: если «цена за 1000 единиц», раскомментируй строку ниже
-    // const minRub = Math.min(...nums) / (chips || 1);
-
-    const minRub = Math.min(...nums); // если цены уже «за 1»
-    return { ok: true, price_RUB: minRub, usedSelector };
+    // читаем цену
+    const got = await pickPrice(page);
+    price = got ?? 0;
   } catch (e) {
-    return { ok: false, error: String(e?.message || e) };
+    error = String(e?.message || e);
   } finally {
-    clearTimeout(timeout);
-    await page.close().catch(() => {});
-    await context.close().catch(() => {});
+    await ctx.close();
   }
-}
 
-/* ====== Основной скрипт ====== */
+  const updated_at = new Date().toISOString();
+  return {
+    key,
+    data: {
+      game: conf.game,
+      currency: conf.currency,
+      price_RUB: price,
+      change_24h: null,
+      change_7d: null,
+      updated_at,
+      trades_top5: [],
+      ...(error ? { error } : {}),
+    },
+  };
+}
 
 async function main() {
   const mapping = JSON.parse(await readFile(MAPPING_PATH, 'utf8'));
 
-  const result = {
+  const browser = await chromium.launch({ headless: true });
+
+  const pairs = {};
+  const tasks = mapping.map(async (conf) => {
+    const t = fetchOne(browser, conf);
+    const r = await Promise.race([
+      t,
+      new Promise((_, rej) => setTimeout(() => rej(new Error('global-timeout')), GLOBAL_TIMEOUT_MS))
+    ]).catch(e => ({ key: conf.key ?? `${conf.game}:${conf.currency}`, data: {
+      game: conf.game,
+      currency: conf.currency,
+      price_RUB: 0,
+      change_24h: null,
+      change_7d: null,
+      updated_at: new Date().toISOString(),
+      trades_top5: [],
+      error: String(e?.message || e),
+    }}));
+
+    pairs[r.key] = r.data;
+  });
+
+  await Promise.all(tasks);
+  await browser.close();
+
+  await mkdir(OUT_DIR, { recursive: true });
+  const payload = {
     updated_at: new Date().toISOString(),
     source: 'funpay',
-    pairs: {}
+    pairs,
   };
-
-  await ensureOutDir();
-
-  const browser = await chromium.launch({ headless: true });
-  try {
-    for (const item of mapping) {
-      const key = item.key;
-      const meta = {
-        game: item.game,
-        currency: item.currency,
-        price_RUB: 0,
-        change_24h: null,
-        change_7d: null,
-        updated_at: new Date().toISOString(),
-        trades_top5: []
-      };
-
-      const r = await parseFunpayMinPrice(browser, item);
-      if (r.ok) {
-        meta.price_RUB = r.price_RUB;
-        meta.used_selector = r.usedSelector;
-      } else {
-        meta.error = r.error;
-      }
-
-      result.pairs[key] = meta;
-
-      // лёгкая пауза, чтобы не долбить сайт
-      await new Promise(res => setTimeout(res, 1500));
-    }
-  } finally {
-    await browser.close().catch(() => {});
-  }
-
-  await writeFile(OUT_FILE, JSON.stringify(result, null, 2), 'utf8');
+  await writeFile(OUT_FILE, JSON.stringify(payload, null, 2), 'utf8');
   console.log('DONE:', OUT_FILE);
 }
 
 main().catch((e) => {
-  console.error('FATAL:', e);
-  process.exitCode = 1;
+  console.error(e);
+  process.exit(1);
 });
