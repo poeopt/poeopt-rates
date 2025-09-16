@@ -1,38 +1,26 @@
 {
-  "updated_at": "2025-09-16T15:54:46.549Z",
+  "updated_at": "2025-09-16T16:26:44.316Z",
   "source": "funpay",
   "pairs": {
     "le:gold": {
       "game": "le",
       "currency": "gold",
-      "price_RUB": 1,
+      "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-16T15:54:50.205Z",
-      "trades_tops": [
-        1,
-        1.83,
-        1.84,
-        1.88,
-        2.28
-      ],
-      "error": null
+      "updated_at": "2025-09-16T16:26:49.753Z",
+      "trades_tops": [],
+      "error": "Нет видимых цен"
     },
     "tli:flame-elementium": {
       "game": "tli",
       "currency": "flame-elementium",
-      "price_RUB": 0.04,
+      "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-16T15:54:53.245Z",
-      "trades_tops": [
-        0.04,
-        0.04,
-        0.04,
-        0.04,
-        0.04
-      ],
-      "error": null
+      "updated_at": "2025-09-16T16:26:54.880Z",
+      "trades_tops": [],
+      "error": "Нет видимых цен"
     },
     "poe2:divine-orb": {
       "game": "poe2",
@@ -40,9 +28,9 @@
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": null,
+      "updated_at": "2025-09-16T16:27:43.497Z",
       "trades_tops": [],
-      "error": "page.waitForSelector: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('.tc-table, .tc-item, table') to be visible\n"
+      "error": "page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator('table.tc-table') to be visible\n"
     },
     "poe1:divine-orb": {
       "game": "poe1",
@@ -50,9 +38,9 @@
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": null,
+      "updated_at": "2025-09-16T16:28:32.146Z",
       "trades_tops": [],
-      "error": "page.waitForSelector: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('.tc-table, .tc-item, table') to be visible\n"
+      "error": "page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator('table.tc-table') to be visible\n"
     }
   }
 }
