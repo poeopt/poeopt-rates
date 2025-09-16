@@ -6,139 +6,140 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// ---------- настройки ----------
+// ---------- пути вывода ----------
 const OUT_DIR  = path.resolve(__dirname, '../public');
 const OUT_FILE = path.join(OUT_DIR, 'rates.json');
 
-const NAV_TIMEOUT_MS   = 60_000; // навигация/загрузка страницы
-const PRICE_WAIT_MS    = 25_000; // ожидание появления цены
-const GLOBAL_TIMEOUT_MS = 90_000; // на один парс одного урла
+// ---------- тайминги ----------
+const NAV_TIMEOUT_MS     = 60_000;  // загрузка страницы
+const PRICE_WAIT_MS      = 30_000;  // ожидания внутри страницы
+const GLOBAL_TIMEOUT_MS  = 90_000;  // лимит на 1 страницу
 
 // читаем mapping.json из КОРНЯ репозитория
 const MAPPING_PATH = path.resolve(__dirname, '../mapping.json');
 
-// ---------- утилиты ----------
+// флаг отладки (скриншоты в ./debug)
+const DEBUG = process.env.DEBUG === '1';
 
-/** Нормализуем текст цены в число RUB */
+// ---------- утилиты ----------
 function parseRubNumber(txt) {
   if (!txt) return NaN;
-  // оставляем цифры, запятую и точку
-  let cleaned = txt.replace(/[^\d.,]/g, '').trim();
-  // если есть и запятая, и точка — убираем тысячные
-  if (cleaned.includes(',') && cleaned.includes('.')) {
-    // предположим, что разделитель дроби — запятая
+  let cleaned = String(txt).replace(/[^\d.,]/g, '').trim();
+  if (!cleaned) return NaN;
+
+  // если есть и точка, и запятая — уберём разделители тысяч
+  if (cleaned.includes('.') && cleaned.includes(',')) {
+    // чаще дробь — запятая
     cleaned = cleaned.replace(/\./g, '').replace(',', '.');
   } else {
-    // одна запятая = десятичный разделитель
     cleaned = cleaned.replace(',', '.');
   }
   const n = Number(cleaned);
-  return Number.isFinite(n) ? n : NaN;
+  return Number.isFinite(n) ? Math.round(n * 100) / 100 : NaN;
 }
 
-/** Среднее по массиву чисел; с округлением до 2 знаков (если понадобится) */
-function round2(n) {
-  return Math.round(n * 100) / 100;
+async function saveDebug(page, key, step = '') {
+  if (!DEBUG) return;
+  const safe = String(key).replace(/[^a-z0-9._-]+/gi, '-').slice(0, 80);
+  await mkdir('debug', { recursive: true });
+  try { await page.screenshot({ path: `debug/${safe}${step ? '-' + step : ''}.png`, fullPage: true }); } catch {}
 }
 
-/** Жмём по цене в шапке таблицы, чтобы сортировать по возрастанию */
+/** Кликаем по заголовку «Цена», стараясь добиться сортировки по возрастанию */
 async function ensureSortByPriceAsc(page) {
-  // на разных страницах разная разметка; используем несколько вариантов
   const candidates = [
-    // общий вид сортируемого заголовка
-    page.locator('.tc-sort').filter({ hasText: /цена/i }),
-    // колонка с ценой в шапке
-    page.locator('.tc-header .tc-price, .tc-head .tc-price'),
-    // запасной вариант — просто заголовок, где есть «Цена»
-    page.getByText(/^Цена/i)
+    '.tc-head .tc-price',          // «новая» шапка
+    '.tc-header .tc-price',        // «старая» шапка
+    '.tc-sort',                    // обобщённо (есть слово «Цена»)
   ];
 
-  for (const loc of candidates) {
+  for (const sel of candidates) {
+    const loc = page.locator(sel);
+    const count = await loc.count().catch(() => 0);
+    if (!count) continue;
+
     try {
-      const count = await loc.count();
-      if (count > 0) {
-        await loc.first().click({ timeout: 2_000 }).catch(() => {});
-        // небольшой даунтайм, чтобы пересортировалось
-        await page.waitForTimeout(500);
-        break;
-      }
+      // два клика — чтобы точно поймать направление
+      await loc.first().click({ timeout: 2000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      await loc.first().click({ timeout: 2000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      break;
     } catch {}
   }
 }
 
-/** Выбираем лигу/сервер в первом селекте, если нужно */
+/** Выбор лиги/сезона/сервера по тексту */
 async function applyLeagueIfNeeded(page, leagueText) {
   if (!leagueText) return;
 
-  // первый селект на странице — это выбор сервера/лиги
-  const trigger = page.locator('.tc-select').first();
-  await trigger.waitFor({ state: 'visible', timeout: PRICE_WAIT_MS });
+  // На страницах Funpay селекты имеют общий класс tc-select.
+  // Пройдёмся по всем — в каком-то из них будет нужная лига.
+  const selects = page.locator('.tc-select');
+  const n = await selects.count().catch(() => 0);
+  for (let i = 0; i < n; i++) {
+    const trigger = selects.nth(i);
+    let current = (await trigger.textContent().catch(() => ''))?.trim() || '';
+    if (current.includes(leagueText)) return;
 
-  // если уже выбран нужный — ничего не делаем
-  const current = await trigger.textContent();
-  if (current && current.trim().includes(leagueText)) return;
-
-  await trigger.click().catch(() => {});
-  // элементы списка селекта
-  const item = page.locator('.tc-select__list .tc-select__item').filter({ hasText: leagueText }).first();
-  await item.waitFor({ state: 'visible', timeout: PRICE_WAIT_MS });
-  await item.click();
-  // подождём перерисовку/перезагрузку офферов
-  await page.waitForLoadState('networkidle', { timeout: NAV_TIMEOUT_MS }).catch(() => {});
-  await page.waitForTimeout(300);
-}
-
-/** Считываем первые topN видимых цен из таблицы */
-async function grabTopPrices(page, topN) {
-  const prices = [];
-  // выбираем ВИДИМЫЕ строки без класса hidden
-  const rows = page.locator('.tc-table .tc-item:not(.hidden)');
-  await rows.first().waitFor({ state: 'visible', timeout: PRICE_WAIT_MS });
-
-  const count = Math.min(await rows.count(), topN);
-  for (let i = 0; i < count; i++) {
-    const row = rows.nth(i);
-    const priceCell = row.locator('.tc-price:visible').first();
-
-    // ждём видимость конкретной ячейки (не «первой попавшейся» на странице)
-    await priceCell.waitFor({ state: 'visible', timeout: PRICE_WAIT_MS });
-    const txt = (await priceCell.textContent()) ?? '';
-    const val = parseRubNumber(txt);
-
-    if (Number.isFinite(val)) prices.push(round2(val));
-  }
-
-  // если выше не получилось (редкие случаи) — запасной способ из DOM
-  if (prices.length === 0) {
-    const backup = await page.evaluate((maxN) => {
-      const out = [];
-      const rows = Array.from(document.querySelectorAll('.tc-table .tc-item'))
-        .filter(r => !r.classList.contains('hidden'))
-        .slice(0, maxN);
-
-      for (const r of rows) {
-        const el = r.querySelector('.tc-price');
-        if (!el) continue;
-        out.push(el.textContent || '');
-      }
-      return out;
-    }, topN);
-
-    for (const t of backup) {
-      const v = parseRubNumber(t);
-      if (Number.isFinite(v)) prices.push(round2(v));
+    try {
+      await trigger.click({ timeout: 1500 });
+      const item = page.locator('.tc-select__list .tc-select__item, .tc-select__option')
+                       .filter({ hasText: leagueText }).first();
+      await item.waitFor({ state: 'attached', timeout: PRICE_WAIT_MS });
+      await item.click({ timeout: 1500 });
+      // дать странице перегрузить офферы
+      await page.waitForLoadState('networkidle', { timeout: NAV_TIMEOUT_MS }).catch(() => {});
+      await page.waitForTimeout(400);
+      return;
+    } catch {
+      // закроем дропдаун по ESC, чтобы не мешал следующему селекту
+      await page.keyboard.press('Escape').catch(() => {});
     }
   }
+}
 
-  return prices;
+/** Считываем первые topN цен из DOM (без требования «visible») */
+async function grabTopPrices(page, topN) {
+  // ждать появления таблицы/строк (без видимости)
+  await page.waitForSelector('.tc-table, .tc-item, table', { timeout: PRICE_WAIT_MS });
+
+  // возьмём тексты цен из самых вероятных мест
+  const priceTexts = await page.evaluate((maxCount) => {
+    const pick = (sel) => Array.from(document.querySelectorAll(sel)).map(e => e.textContent || '');
+
+    // строки без .hidden — приоритетнее
+    const fromRows =
+      Array.from(document.querySelectorAll('.tc-table .tc-item'))
+        .filter(r => !r.classList.contains('hidden'))
+        .map(r => (r.querySelector('.tc-price')?.textContent) || '');
+
+    const union = [
+      ...fromRows,
+      ...pick('.tc-table .tc-item .tc-price'),
+      ...pick('td.tc-price'),
+      ...pick('.tc-price')
+    ].filter(Boolean);
+
+    // отдаём немного с запасом — парсер отфильтрует нечисловые
+    return union.slice(0, Math.max(maxCount * 3, maxCount));
+  }, topN);
+
+  const nums = [];
+  for (const t of priceTexts) {
+    const v = parseRubNumber(t);
+    if (Number.isFinite(v)) {
+      nums.push(v);
+      if (nums.length >= topN) break;
+    }
+  }
+  return nums;
 }
 
 // ---------- основной скрипт ----------
-
 async function main() {
   const mapping = JSON.parse(await readFile(MAPPING_PATH, 'utf8'));
 
-  // браузер
   const browser = await chromium.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-dev-shm-usage']
@@ -146,16 +147,13 @@ async function main() {
 
   const context = await browser.newContext({
     viewport: { width: 1366, height: 900 },
-    userAgent:
-      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36',
+    userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36',
   });
 
-  // чуть ускорим: картинки/шрифты не нужны
+  // Ускорим загрузку: блокируем тяжёлое
   await context.route('**/*', (route) => {
     const type = route.request().resourceType();
-    if (type === 'image' || type === 'font' || type === 'media') {
-      return route.abort();
-    }
+    if (type === 'image' || type === 'font' || type === 'media') return route.abort();
     route.continue();
   });
 
@@ -180,27 +178,44 @@ async function main() {
     };
 
     const page = await context.newPage();
+    const startTs = Date.now();
 
     try {
       await page.goto(funpay_url, { timeout: NAV_TIMEOUT_MS, waitUntil: 'domcontentloaded' });
-      // ждём таблицу с офферами
-      await page.waitForSelector('.tc-table', { timeout: NAV_TIMEOUT_MS });
+      await page.waitForLoadState('networkidle', { timeout: NAV_TIMEOUT_MS }).catch(() => {});
+      await page.waitForTimeout(300);
 
-      // применяем нужную лигу (если указана)
+      await saveDebug(page, key, '01-open');
+
+      // выбранная лига/сезон
       if (league) {
         await applyLeagueIfNeeded(page, league);
+        await saveDebug(page, key, '02-league');
       }
 
-      // сортируем по цене (по возрастанию)
+      // на всякий случай попробуем отсортировать по цене (вверх)
       await ensureSortByPriceAsc(page);
+      await saveDebug(page, key, '03-sort');
 
-      // забираем верхние цены
+      // получить верхние цены
       const top = await grabTopPrices(page, Math.max(1, Number(avg_top) || 1));
       pair.trades_tops = top;
       pair.price_RUB   = top.length ? top[0] : 0;
       pair.updated_at  = new Date().toISOString();
+
+      // если за отведённое время ничего не собрали — пробуем рефреш 1 раз
+      if (!top.length && Date.now() - startTs < GLOBAL_TIMEOUT_MS - 5_000) {
+        await page.reload({ waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT_MS }).catch(() => {});
+        await page.waitForLoadState('networkidle', { timeout: NAV_TIMEOUT_MS }).catch(() => {});
+        const top2 = await grabTopPrices(page, Math.max(1, Number(avg_top) || 1));
+        pair.trades_tops = top2;
+        pair.price_RUB   = top2.length ? top2[0] : 0;
+        pair.updated_at  = new Date().toISOString();
+        await saveDebug(page, key, '04-retry');
+      }
     } catch (e) {
       pair.error = String(e?.message || e);
+      await saveDebug(page, key, 'error');
     } finally {
       await page.close().catch(() => {});
     }
@@ -209,7 +224,6 @@ async function main() {
   }
 
   await browser.close().catch(() => {});
-
   await mkdir(OUT_DIR, { recursive: true });
   await writeFile(OUT_FILE, JSON.stringify(result, null, 2), 'utf8');
 
