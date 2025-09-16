@@ -1,5 +1,5 @@
 {
-  "updated_at": "2025-09-16T11:57:21.794Z",
+  "updated_at": "2025-09-16T12:39:51.343Z",
   "source": "funpay",
   "pairs": {
     "le:gold": {
@@ -8,25 +8,19 @@
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-16T11:57:21.794Z",
-      "trades_top5": [],
-      "error": "page.waitForSelector: Timeout 25000ms exceeded.\nCall log:\n  - waiting for locator('.tc-item .tc-price') to be visible\n    55 × locator resolved to 125 elements. Proceeding with the first one: <div data-s=\"0\" class=\"tc-price\">…</div>\n"
+      "updated_at": null,
+      "trades_tops": [],
+      "error": "page.waitForSelector: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('.tc-table') to be visible\n"
     },
     "tli:flame-elementium": {
       "game": "tli",
       "currency": "flame-elementium",
-      "price_RUB": 0.04,
+      "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-16T11:57:49.544Z",
-      "trades_top5": [
-        0.04,
-        0.04,
-        0.04,
-        0.04,
-        0.04
-      ],
-      "error": null
+      "updated_at": null,
+      "trades_tops": [],
+      "error": "page.waitForSelector: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('.tc-table') to be visible\n"
     },
     "poe2:divine-orb": {
       "game": "poe2",
@@ -34,9 +28,9 @@
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-16T11:57:51.610Z",
-      "trades_top5": [],
-      "error": "page.waitForSelector: Timeout 25000ms exceeded.\nCall log:\n  - waiting for locator('.tc-item .tc-price') to be visible\n"
+      "updated_at": null,
+      "trades_tops": [],
+      "error": "page.waitForSelector: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('.tc-table') to be visible\n"
     },
     "poe1:divine-orb": {
       "game": "poe1",
@@ -44,9 +38,9 @@
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-16T11:58:24.199Z",
-      "trades_top5": [],
-      "error": "page.waitForSelector: Timeout 25000ms exceeded.\nCall log:\n  - waiting for locator('.tc-item .tc-price') to be visible\n"
+      "updated_at": null,
+      "trades_tops": [],
+      "error": "page.waitForSelector: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('.tc-table') to be visible\n"
     }
   }
 }
