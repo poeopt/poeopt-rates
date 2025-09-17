@@ -4,12 +4,13 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const OUT_DIR   = path.resolve(__dirname, 'public');
 const OUT_FILE  = path.join(OUT_DIR, 'rates.json');
 const DEBUG_DIR = path.resolve(__dirname, 'debug');
-const MAPPING_PATH = path.resolve(__dirname, 'mapping.json');
+const MAPPING_PATH = path.resolve(__dirname, '../mapping.json');
 
 const NAV_TIMEOUT   = 35_000;  // полная загрузка
 const WAIT_VISIBLE  = 12_000;  // ожидание видимости цен
