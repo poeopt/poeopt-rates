@@ -4,10 +4,13 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "node scripts/build.mjs",
-    "postinstall": "npx playwright install --with-deps"
+    "build": "node scripts/build.mjs"
   },
   "dependencies": {
     "playwright": "^1.47.2"
-  }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "postinstall": "npx playwright install --with-deps chromium"
 }
