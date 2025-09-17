@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "node build.mjs",
+    "build": "node scripts/build.mjs",
     "postinstall": "npx playwright install --with-deps"
   },
   "dependencies": {
