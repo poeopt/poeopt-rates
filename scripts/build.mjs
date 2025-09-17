@@ -1,197 +1,180 @@
 // scripts/build.mjs
 import { chromium } from 'playwright';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// ---------- пути ----------
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
 
-// === пути вывода ===
-const OUT_DIR     = path.resolve(__dirname, '../public');
-const OUT_FILE    = path.join(OUT_DIR, 'rates.json');
-const DEBUG_DIR   = path.resolve(__dirname, '../debug');
-// ВАЖНО: build.mjs лежит в scripts/, поэтому до корня — ../
+const OUT_DIR  = path.resolve(__dirname, '../public');
+const OUT_FILE = path.join(OUT_DIR, 'rates.json');
+
+// mаппинг лежит В КОРНЕ
 const MAPPING_PATH = path.resolve(__dirname, '../mapping.json');
 
-// === тайминги ===
-const NAV_TIMEOUT  = 35_000;
-const WAIT_VISIBLE = 12_000;
-const MAX_RETRIES  = 2;
+// директория для скринов (заберётся GitHub Actions шагом "Upload debug artifacts")
+const DEBUG_DIR = path.resolve(__dirname, '../debug');
 
-// === утилиты ===
+// ---------- настройки ----------
+const NAV_TIMEOUT_MS   = 30_000;
+const TABLE_WAIT_MS    = 12_000;
+const EXTRA_WAIT_MS    = 3_000;
+const GLOBAL_TIMEOUT   = 60_000; // на один лот
+
+// ---------- утилиты ----------
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-const nowISO = () => new Date().toISOString();
-const sanitize = (name) =>
-  String(name)
-    .replace(/[^\w\d.-]+/g, '_')   // всё «лишнее» -> "_"
-    .replace(/_+/g, '_')           // сжать повторяющиеся "_"
-    .slice(0, 80);                 // защита от слишком длинных
 
-async function saveDebug(page, key, stage, withHtml = false) {
-  try {
-    await mkdir(DEBUG_DIR, { recursive: true });
-    const safe = sanitize(key);
-    await page.screenshot({
-      path: path.join(DEBUG_DIR, `${safe}-${stage}.png`),
-      fullPage: true
-    });
-    if (withHtml) {
-      const html = await page.content();
-      await writeFile(path.join(DEBUG_DIR, `${safe}-${stage}.html`), html, 'utf-8');
-    }
-  } catch { /* ignore */ }
+function ensureDir(p) {
+  return fs.mkdir(p, { recursive: true }).catch(() => {});
 }
 
-async function closeCookieBanner(page){
-  try {
-    const btn = page.locator('[data-gtm="cookie-agree"], button:has-text("Согласен"), button:has-text("Принять")');
-    await btn.first().click({ timeout: 1500 });
-  } catch {}
+function parseRUB(txt) {
+  if (!txt) return null;
+  // убираем всё кроме цифр/разделителей; запятую -> точку
+  const cleaned = txt.replace(/[^\d.,]/g, '').replace(',', '.');
+  const m = cleaned.match(/(\d+(?:\.\d+)?)/);
+  return m ? Number(m[1]) : null;
 }
 
-async function ensureVisiblePrices(page){
-  const tiles = page.locator('.tc-item .tc-price, .tc-item [class*="tc-price"]');
-  const table = page.locator('table.tc-table .tc-price, table.tc-table [class*="tc-price"]');
+async function isTableVisible(page, timeout = 4000) {
   try {
-    await Promise.any([
-      tiles.first().waitFor({ state: 'visible', timeout: WAIT_VISIBLE }),
-      table.first().waitFor({ state: 'visible', timeout: WAIT_VISIBLE })
-    ]);
+    await page.waitForSelector('.tc-table', { state: 'visible', timeout });
+    return true;
   } catch {
-    await page.mouse.wheel(0, 1200);
-    await sleep(600);
-    await Promise.any([
-      tiles.first().waitFor({ state: 'visible', timeout: 4000 }).catch(()=>{}),
-      table.first().waitFor({ state: 'visible', timeout: 4000 }).catch(()=>{})
-    ]);
+    return false;
   }
 }
 
-async function pickLeagueIfNeeded(page, leagueText){
-  if (!leagueText) return;
+/**
+ * Открываем прямую ссылку; если нет таблицы/404 — идём на корневую
+ * категорию и кликаем по элементу с нужным chips id.
+ */
+async function openLotOrFallback(page, item, dbgPrefix = 'dbg') {
+  const url = item.funpay_url;
+  const id  = item.chips;
+  const fallbackRoot = item.fallback_root;
+
   try {
-    const ddHeader = page
-      .locator('.tc-dropdown__header, .tc-select__header, .tc-dropdown, .ui-select')
-      .filter({ hasNotText: /Только продавцы/i })
-      .first();
-    await ddHeader.click({ timeout: 2000 });
-    const option = page
-      .locator('.tc-dropdown__item, .tc-dropdown__list li, .ui-select__item, [role="option"]')
-      .filter({ hasText: leagueText })
-      .first();
-    await option.click({ timeout: 3000 });
-    await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(()=>{});
-  } catch {}
-}
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT_MS });
+  } catch (_) { /* попробуем fallback */ }
 
-async function extractTopPrices(page, avgTop = 5){
-  const prices = await page.locator('.tc-price').evaluateAll(nodes => {
-    const nums = [];
-    for (const el of nodes){
-      const ds = el.getAttribute('data-s');
-      if (ds && /^[\d.,]+$/.test(ds)) {
-        const n = Number(ds.replace(',', '.'));
-        if (!Number.isNaN(n)) nums.push(n);
-        continue;
-      }
-      const txt = (el.textContent || '').replace(/\s+/g,'').replace(/[₽рР]+/g,'').replace(',', '.');
-      const m = txt.match(/-?\d+(?:\.\d+)?/);
-      if (m) {
-        const n = Number(m[0]);
-        if (!Number.isNaN(n)) nums.push(n);
-      }
-    }
-    return nums;
-  });
+  if (await isTableVisible(page, 3500)) return;
 
-  const uniq = [...new Set(prices.filter(n => Number.isFinite(n) && n >= 0))].sort((a,b) => a - b);
-  const tops = uniq.slice(0, Math.max(1, avgTop));
-  const price = tops.length ? (tops.length >= 3 ? (tops[0] + tops[1] + tops[2]) / 3 : tops[0]) : 0;
-  return { price, tops };
-}
+  const title = (await page.title().catch(() => ''))?.toLowerCase?.() ?? '';
+  const looksBad = title.includes('404') || title.includes('не найдена');
+  if ((looksBad || !(await isTableVisible(page, 1500))) && fallbackRoot) {
+    try { await page.screenshot({ path: path.join(DEBUG_DIR, `${dbgPrefix}-fallback-start.png`), fullPage: true }); } catch {}
 
-async function collectPair(page, cfg){
-  const out = {
-    game: cfg.game,
-    currency: cfg.currency,
-    price_RUB: 0,
-    change_24h: null,
-    change_7d: null,
-    updated_at: null,
-    trades_tops: [],
-    error: null
-  };
+    await page.goto(fallbackRoot, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT_MS });
 
-  const url = cfg.funpay_url;
-  const league = cfg.league || null;
-
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++){
-    try{
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
-      await page.waitForLoadState('networkidle', { timeout: 12_000 }).catch(()=>{});
-      await closeCookieBanner(page);
-      await saveDebug(page, cfg.key, `before-${attempt}`);
-
-      await pickLeagueIfNeeded(page, league);
-      await ensureVisiblePrices(page);
-      await saveDebug(page, cfg.key, `visible-${attempt}`);
-
-      const { price, tops } = await extractTopPrices(page, cfg.avg_top ?? 5);
-      if (tops.length === 0) throw new Error('Нет видимых цен');
-
-      out.price_RUB   = Number(price.toFixed(2));
-      out.trades_tops = tops;
-      out.updated_at  = nowISO();
-      out.error = null;
-
-      await saveDebug(page, cfg.key, 'ok');
-      break;
-    } catch(err){
-      out.error = String(err?.message || err);
-      if (attempt < MAX_RETRIES){
-        await sleep(800);
-        continue;
-      }
-      // финальная попытка — сохраняем развёрнутый дебаг
-      await saveDebug(page, cfg.key, 'error', true);
-    }
+    // Ищем ссылку на нужный лот по id
+    // chips: 200/177 -> /chips/<id>/
+    // currencies: .../currencies/<id>/
+    const sel = `a[href$="/${id}/"]`;
+    const idLink = page.locator(sel).first();
+    await idLink.waitFor({ state: 'visible', timeout: 10_000 });
+    await idLink.click();
+    await page.waitForSelector('.tc-table', { state: 'visible', timeout: TABLE_WAIT_MS });
   }
-
-  return out;
 }
 
-async function main(){
-  // всегда создаём debug и кладём маркер запуска,
-  // чтобы шаг Upload artifacts нашёл хотя бы 1 файл
-  await mkdir(DEBUG_DIR, { recursive: true });
-  await writeFile(path.join(DEBUG_DIR, '_run.txt'), `Run at ${nowISO()}\n`, 'utf-8');
+/** Считываем top-N цен из таблицы */
+async function readTopPrices(page, count = 5) {
+  const rows = page.locator('.tc-item');
+  const n = Math.min(await rows.count(), count);
+  const arr = [];
+  for (let i = 0; i < n; i++) {
+    const priceCell = rows.nth(i).locator('.tc-price');
+    try {
+      await priceCell.waitFor({ state: 'visible', timeout: 3000 });
+      const txt = await priceCell.textContent();
+      const val = parseRUB(txt);
+      if (val != null) arr.push(val);
+    } catch {}
+  }
+  return arr;
+}
 
-  // читаем карту
-  const mapping = JSON.parse(await readFile(MAPPING_PATH, 'utf-8'));
+async function writeJson(file, data) {
+  await ensureDir(path.dirname(file));
+  await fs.writeFile(file, JSON.stringify(data, null, 2), 'utf8');
+}
 
-  // браузер
-  const browser = await chromium.launch({
-    headless: true,
-    args: ['--no-sandbox','--disable-dev-shm-usage']
-  });
+// ---------- основной билд ----------
+(async () => {
+  await ensureDir(DEBUG_DIR);
+
+  const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    userAgent:
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
     locale: 'ru-RU',
-    userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119 Safari/537.36',
-    viewport: { width: 1280, height: 900 }
   });
   const page = await context.newPage();
 
-  // сборка
-  const output = { updated_at: nowISO(), source: 'funpay', pairs: {} };
-  for (const cfg of mapping){
-    output.pairs[cfg.key] = await collectPair(page, cfg);
+  const mappingRaw = await fs.readFile(MAPPING_PATH, 'utf8');
+  const mapping = JSON.parse(mappingRaw);
+
+  const result = {
+    updated_at: new Date().toISOString(),
+    source: 'funpay',
+    pairs: {},
+  };
+
+  for (const item of mapping) {
+    const key = item.key;
+    const startedAt = Date.now();
+    const meta = {
+      game: item.game,
+      currency: item.currency,
+      price_RUB: 0,
+      change_24h: null,
+      change_7d: null,
+      updated_at: null,
+      trades_tops: [],
+      error: null,
+    };
+
+    try {
+      await openLotOrFallback(page, item, key);
+      await page.waitForLoadState('domcontentloaded');
+
+      // иногда таблица появляется, но ценники чуть позже
+      await sleep(EXTRA_WAIT_MS);
+
+      if (!(await isTableVisible(page, 1500))) {
+        meta.error = 'Нет видимых цен';
+      } else {
+        const tops = await readTopPrices(page, item.avg_top ?? 5);
+        meta.trades_tops = tops;
+        meta.price_RUB = tops.length ? tops[0] : 0;
+        if (!tops.length) meta.error = 'Нет видимых цен';
+      }
+
+      try { await page.screenshot({ path: path.join(DEBUG_DIR, `${key}-final.png`), fullPage: true }); } catch {}
+    } catch (err) {
+      meta.error = String(err?.message || err);
+      try { await page.screenshot({ path: path.join(DEBUG_DIR, `${key}-error.png`), fullPage: true }); } catch {}
+    } finally {
+      meta.updated_at = new Date().toISOString();
+
+      // страховка от зависаний на один лот
+      if (Date.now() - startedAt > GLOBAL_TIMEOUT) {
+        meta.error = (meta.error ? meta.error + ' | ' : '') + 'Lot timeout';
+      }
+      result.pairs[key] = meta;
+    }
   }
 
+  await writeJson(OUT_FILE, result);
+
   await browser.close();
-
-  await mkdir(OUT_DIR, { recursive: true });
-  await writeFile(OUT_FILE, JSON.stringify(output, null, 2), 'utf-8');
-  console.log('Saved:', OUT_FILE);
-}
-
-main().catch(err => { console.error(err); process.exit(1); });
+  // выводим путь к результату в лог
+  console.log('Wrote:', OUT_FILE);
+})().catch(async (e) => {
+  console.error(e);
+  process.exitCode = 1;
+});
