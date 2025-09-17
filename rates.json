@@ -1,26 +1,38 @@
 {
-  "updated_at": "2025-09-17T16:58:18.472Z",
+  "updated_at": "2025-09-17T17:02:28.066Z",
   "source": "funpay",
   "pairs": {
     "le:gold": {
       "game": "le",
       "currency": "gold",
-      "price_RUB": 0,
+      "price_RUB": 2.04,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-17T16:58:21.847Z",
-      "trades_tops": [],
-      "error": "locator.waitFor: Error: strict mode violation: locator('.tc-table, .tc-item, table') resolved to 127 elements:\n    1) <a class=\"tc-item\" data-online=\"1\" data-server=\"9990\" href=\"https://funpay.com/chips/offer?id=2811886-337-200-9990-0\">…</a> aka getByRole('link', { name: 'Legacy (Standard) robertuwu' })\n    2) <a class=\"tc-item\" data-server=\"9990\" href=\"https://funpay.com/chips/offer?id=276-337-200-9990-0\">…</a> aka getByRole('link', { name: 'Legacy (Standard) Easymoneylo' })\n    3) <a class=\"tc-item\" data-server=\"9990\" href=\"https://funpay.com/chips/offer?id=15036471-337-200-9990-0\">…</a> aka getByRole('link', { name: 'Legacy (Standard) Blissr' })\n    4) <a class=\"tc-item\" data-online=\"1\" data-server=\"9990\" href=\"https://funpay.com/chips/offer?id=1798096-337-200-9990-0\">…</a> aka getByRole('link', { name: 'Legacy (Standard) UZURPATORtm' })\n    5) <a class=\"tc-item\" data-server=\"9990\" href=\"https://funpay.com/chips/offer?id=8628638-337-200-9990-0\">…</a> aka getByRole('link', { name: 'Legacy (Standard) Hdhejwbb' })\n    6) <a class=\"tc-item\" data-online=\"1\" data-server=\"9990\" href=\"https://funpay.com/chips/offer?id=519134-337-200-9990-0\">…</a> aka getByRole('link', { name: 'Legacy (Standard) KrAsIvO2018' })\n    7) <a class=\"tc-item\" data-online=\"1\" data-server=\"11345\" href=\"https://funpay.com/chips/offer?id=519134-337-200-11345-0\">…</a> aka getByRole('link', { name: 'Tombs of the Erased (Standard) KrAsIvO2018      556 на сайте 8 лет 1 000' })\n    8) <a class=\"tc-item\" data-server=\"9990\" href=\"https://funpay.com/chips/offer?id=2364480-337-200-9990-0\">…</a> aka getByRole('link', { name: 'Legacy (Standard) AndreyZ0' })\n    9) <a class=\"tc-item\" data-online=\"1\" data-server=\"9990\" href=\"https://funpay.com/chips/offer?id=1523179-337-200-9990-0\">…</a> aka getByRole('link', { name: 'Legacy (Standard) Kronasss' })\n    10) <a class=\"tc-item\" data-online=\"1\" data-server=\"9990\" href=\"https://funpay.com/chips/offer?id=1857105-337-200-9990-0\">…</a> aka getByRole('link', { name: 'Legacy (Standard) ExpressGOLD' })\n    ...\n\nCall log:\n  - waiting for locator('.tc-table, .tc-item, table') to be visible\n"
+      "updated_at": "2025-09-17T17:02:51.930Z",
+      "trades_tops": [
+        1.83,
+        1.84,
+        1.88,
+        2.3,
+        2.37
+      ],
+      "error": null
     },
     "tli:flame-elementium": {
       "game": "tli",
       "currency": "flame-elementium",
-      "price_RUB": 0,
+      "price_RUB": 0.04,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-17T16:58:24.311Z",
-      "trades_tops": [],
-      "error": "locator.waitFor: Error: strict mode violation: locator('.tc-table, .tc-item, table') resolved to 147 elements:\n    1) <a class=\"tc-item\" data-online=\"1\" data-server=\"11843\" href=\"https://funpay.com/chips/offer?id=8342583-309-177-11843-0\">…</a> aka getByRole('link', { name: '(EU) Outlaw Season Kich69' })\n    2) <a class=\"tc-item\" data-online=\"1\" data-server=\"11843\" href=\"https://funpay.com/chips/offer?id=432574-309-177-11843-0\">…</a> aka getByRole('link', { name: '(EU) Outlaw Season LordDexe' })\n    3) <a class=\"tc-item\" data-online=\"1\" data-server=\"11843\" href=\"https://funpay.com/chips/offer?id=1799114-309-177-11843-0\">…</a> aka getByRole('link', { name: '(EU) Outlaw Season dodolk' })\n    4) <a class=\"tc-item\" data-online=\"1\" data-server=\"11844\" href=\"https://funpay.com/chips/offer?id=1799114-309-177-11844-0\">…</a> aka getByRole('link', { name: '(US) Outlaw Season dodolk' })\n    5) <a class=\"tc-item\" data-online=\"1\" data-server=\"11845\" href=\"https://funpay.com/chips/offer?id=1799114-309-177-11845-0\">…</a> aka getByRole('link', { name: '(SEA) Outlaw Season dodolk' })\n    6) <a class=\"tc-item\" data-online=\"1\" data-server=\"11843\" href=\"https://funpay.com/chips/offer?id=974240-309-177-11843-0\">…</a> aka getByRole('link', { name: '(EU) Outlaw Season smalldevil94      56755 на сайте 7 лет 168 587 0.045 ₽' })\n    7) <a class=\"tc-item\" data-online=\"1\" data-server=\"11843\" href=\"https://funpay.com/chips/offer?id=13575165-309-177-11843-0\">…</a> aka getByRole('link', { name: '(EU) Outlaw Season ryab9 3' })\n    8) <a class=\"tc-item\" data-server=\"11843\" href=\"https://funpay.com/chips/offer?id=718049-309-177-11843-0\">…</a> aka getByRole('link', { name: '(EU) Outlaw Season saint4' })\n    9) <a class=\"tc-item\" data-online=\"1\" data-server=\"11844\" href=\"https://funpay.com/chips/offer?id=974240-309-177-11844-0\">…</a> aka getByRole('link', { name: '(US) Outlaw Season smalldevil94      56755 на сайте 7 лет 175 653 0.049 ₽' })\n    10) <a class=\"tc-item\" data-online=\"1\" data-server=\"11845\" href=\"https://funpay.com/chips/offer?id=974240-309-177-11845-0\">…</a> aka getByRole('link', { name: '(SEA) Outlaw Season smalldevil94      56755 на сайте 7 лет 135 247 0.049 ₽' })\n    ...\n\nCall log:\n  - waiting for locator('.tc-table, .tc-item, table') to be visible\n"
+      "updated_at": "2025-09-17T17:03:17.111Z",
+      "trades_tops": [
+        0.04,
+        0.04,
+        0.04,
+        0.04,
+        0.04
+      ],
+      "error": null
     },
     "poe2:divine-orb": {
       "game": "poe2",
@@ -28,9 +40,9 @@
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-17T16:58:40.581Z",
+      "updated_at": null,
       "trades_tops": [],
-      "error": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator('.tc-table, .tc-item, table') to be visible\n"
+      "error": "Не дождался селекторов: table.tc-table | .tc-item"
     },
     "poe1:divine-orb": {
       "game": "poe1",
@@ -38,9 +50,9 @@
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-17T16:58:56.744Z",
+      "updated_at": null,
       "trades_tops": [],
-      "error": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator('.tc-table, .tc-item, table') to be visible\n"
+      "error": "Не дождался селекторов: table.tc-table | .tc-item"
     }
   }
 }
