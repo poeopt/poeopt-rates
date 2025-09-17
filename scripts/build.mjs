@@ -2,74 +2,176 @@
 import { chromium } from 'playwright';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  readFile,
-  writeFile,
-  mkdir,
-  access,
-  constants as FS_CONSTS,
-} from 'node:fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
-// ===== ПУТИ В РЕПО =====
-const OUT_DIR   = path.resolve(__dirname, '../public');
-const OUT_FILE  = path.join(OUT_DIR, 'rates.json');
-const DEBUG_DIR = path.resolve(__dirname, '../debug');
+// --- пути ---
+const ROOT_DIR     = path.resolve(__dirname, '..');
+const OUT_DIR      = path.resolve(ROOT_DIR, 'public');
+const OUT_FILE     = path.join(OUT_DIR, 'rates.json');
+const MAPPING_FILE = path.resolve(ROOT_DIR, 'mapping.json');
+const DEBUG_DIR    = path.resolve(ROOT_DIR, 'debug');
 
-// ===== ТАЙМАУТЫ =====
-const NAV_TIMEOUT_MS    = 60_000;  // загрузка страницы
-const TABLE_WAIT_MS     = 15_000;  // ожидание появления таблицы/элементов
-const PRICE_WAIT_MS     = 25_000;  // ожидание значения цены для ряда
+// --- тайминги ---
+const NAV_TIMEOUT_MS   = 60_000; // страница/навигация
+const PRICE_WAIT_MS    = 15_000; // ожидание цен
+const GLOBAL_TIMEOUT_MS= 90_000; // на одну пару
 
-// ===== СЕЛЕКТОРЫ КАНДИДАТЫ ДЛЯ ЦЕНЫ =====
+// --- селекторы для цен (в порядке предпочтения) ---
 const PRICE_SELECTORS = [
-  '.tc-item .tc-price span.price', // основной
-  'td.tc-price .price',
-  '.tc-price .price',
+  'table.tc-table .tc-item .tc-price',
+  'table.tc-table .tc-price',
+  '.tc-item .tc-price',
+  '.tc-price',
 ];
 
-// ===== ХЕЛПЕРЫ =====
-const safeName = (s) => String(s).toLowerCase().replace(/[^a-z0-9._-]/gi, '_');
+// ---------- helpers ----------
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-function parseRUB(text) {
-  if (!text) return null;
-  // Убираем всё лишнее, запятую → точку
-  const cleaned = String(text).replace(/[^\d.,]/g, '').replace(',', '.');
-  const n = parseFloat(cleaned);
-  return Number.isFinite(n) ? Number(n) : null;
+function safeName(s) {
+  return String(s).toLowerCase().replace(/[^a-z0-9._-]+/gi, '_');
 }
 
 async function ensureDir(dir) {
   await mkdir(dir, { recursive: true });
 }
 
-async function fileExists(p) {
-  try { await access(p, FS_CONSTS.F_OK); return true; } catch { return false; }
+function parseRub(text) {
+  if (!text) return null;
+  const cleaned = String(text)
+    .replace(/\u00A0/g, ' ')      // NBSP -> space
+    .replace(/[^\d.,]/g, '')      // только цифры/разделители
+    .replace(',', '.');
+  const m = cleaned.match(/\d+(?:\.\d+)?/);
+  const num = m ? parseFloat(m[0]) : NaN;
+  return Number.isFinite(num) ? num : null;
 }
 
-async function readMapping() {
-  // 1) корень репозитория
-  const root = path.resolve(__dirname, '../mapping.json');
-  if (await fileExists(root)) {
-    const raw = await readFile(root, 'utf8');
-    return JSON.parse(raw);
-  }
-  // 2) рядом со скриптом (fallback)
-  const local = path.resolve(__dirname, './mapping.json');
-  if (await fileExists(local)) {
-    const raw = await readFile(local, 'utf8');
-    return JSON.parse(raw);
-  }
-  throw new Error('mapping.json не найден ни в корне, ни в scripts/');
+function avg(arr) {
+  if (!arr.length) return 0;
+  return arr.reduce((a, b) => a + b, 0) / arr.length;
 }
 
-async function scrapePair(page, pair) {
-  const base = safeName(pair.key);
-  const result = {
-    game: pair.game,
-    currency: pair.currency,
+async function clickCookiesIfAny(page) {
+  const selectors = [
+    '#cookiescript_accept',
+    '.fc-cta-consent',
+    'button:has-text("Согласен")',
+    'button:has-text("Принять")',
+  ];
+  for (const sel of selectors) {
+    const el = page.locator(sel).first();
+    try { await el.click({ timeout: 1500 }); break; } catch {}
+  }
+}
+
+async function takeShot(page, key, tag = 'ok') {
+  try {
+    await ensureDir(DEBUG_DIR);
+    const name = `${safeName(key)}-${tag}.png`;
+    await page.screenshot({ path: path.join(DEBUG_DIR, name), fullPage: true });
+  } catch {}
+}
+
+async function waitForAny(page, selectors, { state = 'visible', timeout = PRICE_WAIT_MS } = {}) {
+  const endAt = Date.now() + timeout;
+  for (const sel of selectors) {
+    const t = Math.max(500, endAt - Date.now());
+    if (t <= 0) break;
+    try {
+      await page.waitForSelector(sel, { state, timeout: t });
+      return sel;
+    } catch {}
+  }
+  throw new Error(`Не дождался селекторов: ${selectors.join(' | ')}`);
+}
+
+async function grabTopPrices(page, topN) {
+  for (const sel of PRICE_SELECTORS) {
+    const list = page.locator(sel);
+    const count = await list.count().catch(() => 0);
+    if (!count) continue;
+
+    const nums = [];
+    const lim = Math.min(count, Math.max(5, topN)); // берем побольше для надежности
+    for (let i = 0; i < lim; i++) {
+      const t = await list.nth(i).innerText().catch(() => null);
+      const n = parseRub(t);
+      if (n !== null) nums.push(n);
+    }
+    if (nums.length) return nums;
+  }
+  return [];
+}
+
+async function maybeSelectLeague(page, wanted) {
+  if (!wanted) return;
+
+  // очень осторожный/опциональный выбор через UI — если не найдет, тихо идем дальше
+  try {
+    const title = page.locator('.ui-select__title, .select__title').first();
+    await title.click({ timeout: 2000 });
+    const opt = page.locator('.ui-select__option, .select__option').filter({ hasText: wanted }).first();
+    await opt.click({ timeout: 2000 });
+    await sleep(600);
+  } catch {}
+}
+
+// ---------- парсеры ----------
+async function parseLotsPage(page, key, avgTop) {
+  // дождаться таблицы/строк/цен
+  try {
+    await waitForAny(page, ['table.tc-table', '.tc-item'], { state: 'attached', timeout: PRICE_WAIT_MS });
+  } catch {
+    // Иногда лениво подгружается — слегка проскроллим
+    await page.evaluate(() => window.scrollBy(0, 600));
+    await waitForAny(page, ['table.tc-table', '.tc-item'], { state: 'attached', timeout: PRICE_WAIT_MS });
+  }
+
+  const prices = await grabTopPrices(page, avgTop);
+  if (!prices.length) throw new Error('Нет видимых цен');
+
+  return {
+    price: +avg(prices.slice(0, avgTop)).toFixed(2),
+    tops: prices.slice(0, 5).map(n => +n.toFixed(2)),
+  };
+}
+
+async function parseChipsPage(page, key, avgTop) {
+  // Для /chips/ каталога тоже часто встречается .tc-price,
+  // поэтому используем тот же механизм ожидания/сбора.
+  await waitForAny(page, PRICE_SELECTORS, { state: 'visible', timeout: PRICE_WAIT_MS });
+  const prices = await grabTopPrices(page, avgTop);
+  if (!prices.length) throw new Error('Нет видимых цен');
+
+  return {
+    price: +avg(prices.slice(0, avgTop)).toFixed(2),
+    tops: prices.slice(0, 5).map(n => +n.toFixed(2)),
+  };
+}
+
+// ---------- main ----------
+const mapping = JSON.parse(await readFile(MAPPING_FILE, 'utf8'));
+await ensureDir(OUT_DIR);
+await ensureDir(DEBUG_DIR);
+
+const browser = await chromium.launch({ headless: true });
+const page = await browser.newPage({
+  viewport: { width: 1366, height: 900 },
+  userAgent:
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36',
+});
+
+const output = { updated_at: new Date().toISOString(), source: 'funpay', pairs: {} };
+
+for (const cfg of mapping) {
+  const key = cfg.key;
+  const startTs = Date.now();
+  const one = {
+    game: cfg.game,
+    currency: cfg.currency,
     price_RUB: 0,
     change_24h: null,
     change_7d: null,
@@ -79,110 +181,41 @@ async function scrapePair(page, pair) {
   };
 
   try {
-    await page.goto(pair.funpay_url, { timeout: NAV_TIMEOUT_MS, waitUntil: 'domcontentloaded' });
+    const url = cfg.funpay_url || cfg.fallback_root || '';
+    if (!url) throw new Error('Не задан funpay_url');
 
-    // ждём таблицу/строки хотя бы одним из вариантов
-    const tableOrRow = page.locator('.tc-table, .tc-item, table');
-    await tableOrRow.waitFor({ timeout: TABLE_WAIT_MS });
+    // Навигация
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT_MS });
+    await clickCookiesIfAny(page);
+    await sleep(400);
 
-    // найдём первые 5 видимых строк с ценой
-    let prices = [];
+    // Попробуем переключить нужную лигу/сервер (если указана)
+    await maybeSelectLeague(page, cfg.league);
 
-    // Сначала пытаемся через строки .tc-item
-    const rowCount = await page.locator('.tc-item').count();
-    const rowsToRead = Math.min(rowCount || 0, 5);
-    for (let i = 0; i < rowsToRead; i++) {
-      let priceText = null;
-      for (const sel of PRICE_SELECTORS) {
-        const loc = page.locator(`.tc-item >> nth=${i}`).locator(sel);
-        try {
-          await loc.first().waitFor({ timeout: PRICE_WAIT_MS });
-          const t = await loc.first().textContent();
-          if (t && t.trim()) { priceText = t.trim(); break; }
-        } catch { /* продолжаем пробовать другой селектор */ }
-      }
-      const n = parseRUB(priceText);
-      if (n !== null) prices.push(n);
-    }
+    // Выбор парсера по типу урла
+    const isChips = /\/chips\//i.test(url);
+    const avgTop = Math.max(1, cfg.avg_top ?? 3);
 
-    // Если строки не нашли — пробуем просто первые 5 по глобальным селекторам
-    if (prices.length === 0) {
-      for (const sel of PRICE_SELECTORS) {
-        const loc = page.locator(sel);
-        const cnt = await loc.count();
-        if (cnt > 0) {
-          const take = Math.min(cnt, 5);
-          for (let i = 0; i < take; i++) {
-            const txt = (await loc.nth(i).textContent())?.trim() || '';
-            const n = parseRUB(txt);
-            if (n !== null) prices.push(n);
-          }
-          if (prices.length) break;
-        }
-      }
-    }
+    const res = isChips
+      ? await parseChipsPage(page, key, avgTop)
+      : await parseLotsPage(page, key, avgTop);
 
-    // итог
-    result.trades_tops = prices;
-    result.price_RUB   = prices[0] ?? 0;
-    result.updated_at  = new Date().toISOString();
-
-    // успех → скриншот
-    await page.screenshot({ path: path.join(DEBUG_DIR, `${base}-ok.png`) });
-
-  } catch (err) {
-    result.error      = String(err?.message || err);
-    result.updated_at = new Date().toISOString();
-
-    // стараться сохранить и скрин, и html
-    try { await page.screenshot({ path: path.join(DEBUG_DIR, `${base}-error.png`) }); } catch {}
-    try { await writeFile(path.join(DEBUG_DIR, `${base}.html`), await page.content(), 'utf8'); } catch {}
+    one.price_RUB  = res.price;
+    one.trades_tops = res.tops;
+    one.updated_at = new Date().toISOString();
+    await takeShot(page, key, 'ok');
+  } catch (e) {
+    one.error = String(e?.message || e);
+    await takeShot(page, key, 'error');
   }
 
-  return result;
+  output.pairs[key] = one;
+
+  // маленький «дыхательный» промежуток, чтобы не спамить
+  if (Date.now() - startTs < 1200) await sleep(1200);
 }
 
-async function main() {
-  await ensureDir(OUT_DIR);
-  await ensureDir(DEBUG_DIR);
+await writeFile(OUT_FILE, JSON.stringify(output, null, 2), 'utf8');
+await browser.close();
 
-  const mapping = await readMapping();
-
-  const out = {
-    updated_at: new Date().toISOString(),
-    source: 'funpay',
-    pairs: {},
-  };
-
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({
-    viewport: { width: 1400, height: 900 },
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Safari/537.36',
-  });
-  const page = await context.newPage();
-
-  for (const pair of mapping) {
-    out.pairs[pair.key] = await scrapePair(page, pair);
-    // небольшая пауза между запросами, чтобы не троттлить
-    await page.waitForTimeout(800);
-  }
-
-  await browser.close();
-
-  // сохраняем JSON
-  await writeFile(OUT_FILE, JSON.stringify(out, null, 2), 'utf8');
-  console.log('DONE:', OUT_FILE);
-}
-
-main().catch(async (e) => {
-  console.error('FATAL:', e);
-  try {
-    await writeFile(OUT_FILE, JSON.stringify({
-      updated_at: new Date().toISOString(),
-      source: 'funpay',
-      pairs: {},
-      error: String(e?.message || e)
-    }, null, 2), 'utf8');
-  } catch {}
-  process.exit(1);
-});
+console.log(`DONE -> ${OUT_FILE}`);
