@@ -1,5 +1,5 @@
 {
-  "updated_at": "2025-09-18T08:00:58.642Z",
+  "updated_at": "2025-09-18T08:18:05.175Z",
   "source": "funpay",
   "pairs": {
     "le:gold": {
@@ -8,7 +8,7 @@
       "price_RUB": 1,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T08:00:31.150Z",
+      "updated_at": "2025-09-18T08:17:37.615Z",
       "trades_tops": [
         1,
         1.84,
@@ -24,13 +24,13 @@
       "price_RUB": 0.043,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T08:00:34.100Z",
+      "updated_at": "2025-09-18T08:17:40.499Z",
       "trades_tops": [
         0.043,
-        0.044,
-        0.044,
-        0.044,
-        0.045
+        0.043,
+        0.043,
+        0.043,
+        0.044
       ],
       "error": null
     },
@@ -40,23 +40,23 @@
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T08:00:55.704Z",
+      "updated_at": "2025-09-18T08:18:02.110Z",
       "trades_tops": [],
       "error": "page.waitForSelector: Timeout 20000ms exceeded.\nCall log:\n  - waiting for locator('.tc-price, .tc-table .tc-item, table.tc-table') to be visible\n"
     },
     "poe1:divine-orb": {
       "game": "poe1",
       "currency": "divine-orb",
-      "price_RUB": 1.27,
+      "price_RUB": 1.03,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T08:00:58.470Z",
+      "updated_at": "2025-09-18T08:18:04.982Z",
       "trades_tops": [
-        1.27,
+        1.03,
+        1.01,
         1.02,
         1.03,
-        1.03,
-        1.05
+        1.03
       ],
       "error": null
     }
