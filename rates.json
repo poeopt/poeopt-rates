@@ -1,5 +1,5 @@
 {
-  "updated_at": "2025-09-18T10:41:59.105Z",
+  "updated_at": "2025-09-18T10:56:23.451Z",
   "source": "funpay",
   "pairs": {
     "le:gold": {
@@ -8,7 +8,7 @@
       "price_RUB": 1,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T10:41:31.163Z",
+      "updated_at": "2025-09-18T10:55:54.645Z",
       "trades_tops": [
         1,
         1.84,
@@ -21,12 +21,12 @@
     "tli:flame-elementium": {
       "game": "tli",
       "currency": "flame-elementium",
-      "price_RUB": 0.042,
+      "price_RUB": 0.041,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T10:41:34.263Z",
+      "updated_at": "2025-09-18T10:55:57.941Z",
       "trades_tops": [
-        0.042,
+        0.041,
         0.043,
         0.043,
         0.043,
@@ -40,23 +40,23 @@
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T10:41:55.934Z",
+      "updated_at": "2025-09-18T10:56:19.989Z",
       "trades_tops": [],
       "error": "page.waitForSelector: Timeout 20000ms exceeded.\nCall log:\n  - waiting for locator('.tc-price, .tc-table .tc-item, table.tc-table') to be visible\n"
     },
     "poe1:divine-orb": {
       "game": "poe1",
       "currency": "divine-orb",
-      "price_RUB": 1.19,
+      "price_RUB": 0.97,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T10:41:58.919Z",
+      "updated_at": "2025-09-18T10:56:23.260Z",
       "trades_tops": [
-        1.19,
+        0.97,
+        0.95,
         0.97,
         0.97,
-        0.98,
-        1.02
+        0.98
       ],
       "error": null
     }
