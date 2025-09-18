@@ -1,20 +1,20 @@
 {
-  "updated_at": "2025-09-18T07:55:36.790Z",
+  "updated_at": "2025-09-18T08:00:58.642Z",
   "source": "funpay",
   "pairs": {
     "le:gold": {
       "game": "le",
       "currency": "gold",
-      "price_RUB": 23.01,
+      "price_RUB": 1,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T07:55:38.137Z",
-      "trades_top5": [
-        23.01,
-        33.26,
-        33.28,
-        33.36,
-        33.37
+      "updated_at": "2025-09-18T08:00:31.150Z",
+      "trades_tops": [
+        1,
+        1.84,
+        1.88,
+        2.29,
+        2.37
       ],
       "error": null
     },
@@ -24,13 +24,13 @@
       "price_RUB": 0.043,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T07:55:39.003Z",
-      "trades_top5": [
+      "updated_at": "2025-09-18T08:00:34.100Z",
+      "trades_tops": [
         0.043,
         0.044,
-        0.045,
-        0.049,
-        0.05
+        0.044,
+        0.044,
+        0.045
       ],
       "error": null
     },
@@ -40,19 +40,25 @@
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": null,
-      "trades_top5": [],
-      "error": "Не дождался селекторов: .tc-item .tc-price"
+      "updated_at": "2025-09-18T08:00:55.704Z",
+      "trades_tops": [],
+      "error": "page.waitForSelector: Timeout 20000ms exceeded.\nCall log:\n  - waiting for locator('.tc-price, .tc-table .tc-item, table.tc-table') to be visible\n"
     },
     "poe1:divine-orb": {
       "game": "poe1",
       "currency": "divine-orb",
-      "price_RUB": 0,
+      "price_RUB": 1.27,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": null,
-      "trades_top5": [],
-      "error": "Не дождался селекторов: .tc-item .tc-price"
+      "updated_at": "2025-09-18T08:00:58.470Z",
+      "trades_tops": [
+        1.27,
+        1.02,
+        1.03,
+        1.03,
+        1.05
+      ],
+      "error": null
     }
   }
 }
