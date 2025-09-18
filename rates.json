@@ -1,5 +1,5 @@
 {
-  "updated_at": "2025-09-18T19:53:55.074Z",
+  "updated_at": "2025-09-18T20:35:54.117Z",
   "source": "funpay",
   "pairs": {
     "le:gold": {
@@ -8,7 +8,7 @@
       "price_RUB": 1.83,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T19:53:57.530Z",
+      "updated_at": "2025-09-18T20:35:56.996Z",
       "trades_tops": [
         1.83,
         1.84,
@@ -31,34 +31,28 @@
     "poe1:divine-orb": {
       "game": "poe1",
       "currency": "divine-orb",
-      "price_RUB": 0.93,
+      "price_RUB": 0.92,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T19:54:22.056Z",
+      "updated_at": "2025-09-18T20:36:22.712Z",
       "trades_tops": [
+        0.92,
         0.93,
         0.95,
         0.96,
-        0.98,
-        1
+        0.98
       ],
       "error": null
     },
     "poe2:divine-orb": {
       "game": "poe2",
       "currency": "divine-orb",
-      "price_RUB": 0.0182,
+      "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T19:54:56.210Z",
-      "trades_tops": [
-        0.0182,
-        0.03,
-        0.034,
-        0.035,
-        0.036
-      ],
-      "error": null
+      "updated_at": null,
+      "trades_tops": [],
+      "error": "page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://funpay.com/chips/209/\", waiting until \"domcontentloaded\"\n"
     }
   }
 }
