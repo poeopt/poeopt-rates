@@ -1,14 +1,14 @@
 {
-  "updated_at": "2025-09-18T11:56:42.270Z",
+  "updated_at": "2025-09-18T13:06:14.940Z",
   "source": "funpay",
   "pairs": {
-    "le:gold": {
+    "legold": {
       "game": "le",
       "currency": "gold",
       "price_RUB": 1,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T11:56:13.557Z",
+      "updated_at": "2025-09-18T13:05:27.487Z",
       "trades_tops": [
         1,
         1.84,
@@ -21,42 +21,42 @@
     "tli:flame-elementium": {
       "game": "tli",
       "currency": "flame-elementium",
-      "price_RUB": 0.041,
+      "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T11:56:16.824Z",
+      "updated_at": null,
+      "trades_tops": [],
+      "error": "page.waitForSelector: Timeout 20000ms exceeded.\nCall log:\n  - waiting for locator('.tc-price') to be visible\n"
+    },
+    "poe1:divine-orb": {
+      "game": "poe1",
+      "currency": "divine-orb",
+      "price_RUB": 0.85,
+      "change_24h": null,
+      "change_7d": null,
+      "updated_at": "2025-09-18T13:06:01.363Z",
       "trades_tops": [
-        0.041,
-        0.043,
-        0.043,
-        0.043,
-        0.043
+        0.85,
+        0.97,
+        0.98,
+        1.02,
+        1.03
       ],
       "error": null
     },
     "poe2:divine-orb": {
       "game": "poe2",
       "currency": "divine-orb",
-      "price_RUB": 0,
+      "price_RUB": 0.017,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T11:56:38.783Z",
-      "trades_tops": [],
-      "error": "page.waitForSelector: Timeout 20000ms exceeded.\nCall log:\n  - waiting for locator('.tc-price, .tc-table .tc-item, table.tc-table') to be visible\n"
-    },
-    "poe1:divine-orb": {
-      "game": "poe1",
-      "currency": "divine-orb",
-      "price_RUB": 0.97,
-      "change_24h": null,
-      "change_7d": null,
-      "updated_at": "2025-09-18T11:56:42.072Z",
+      "updated_at": "2025-09-18T13:06:13.486Z",
       "trades_tops": [
-        0.97,
-        0.95,
-        0.97,
-        0.97,
-        0.97
+        0.017,
+        0.0182,
+        0.03,
+        0.035,
+        0.036
       ],
       "error": null
     }

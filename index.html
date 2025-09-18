@@ -1,65 +1,76 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>poeopt-rates</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body{background:#0f0f0f;color:#eee;font:16px/1.4 system-ui,Segoe UI,Roboto,Arial}
-    .wrap{max-width:1000px;margin:40px auto;padding:0 16px}
-    h1{margin:0 0 12px}
-    .muted{color:#aaa}
-    table{width:100%;border-collapse:collapse;margin-top:16px}
-    th,td{padding:10px;border-bottom:1px solid #222;text-align:left}
-    th{color:#bbb;font-weight:600}
-    .num{text-align:right;font-variant-numeric:tabular-nums}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#1c1c1c;color:#ddd;font-size:12px}
-    a{color:#9ad}
+    :root { color-scheme: dark; }
+    body { margin:0; background:#0d0f12; color:#f2f3f5; font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    a { color:#8ab4ff; text-decoration:none; }
+    .wrap { max-width: 1100px; margin: 40px auto; padding: 0 16px; }
+    h1 { font-weight:800; letter-spacing:.3px; margin:0 0 10px }
+    small.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color:#9aa3b2 }
+    table { width:100%; border-collapse: collapse; margin-top:18px; }
+    th, td { border-top: 1px solid #222831; padding: 10px 12px; }
+    th { color:#98a2b3; font-weight:600; text-align:left; }
+    .key { background:#151a21; padding:4px 10px; border-radius:999px; display:inline-block; font-weight:700; }
+    .chips { display:flex; gap:6px; flex-wrap:wrap; }
+    .chip { background:#131820; border:1px solid #1c2330; padding:4px 8px; border-radius:8px; font-feature-settings:"tnum"; font-variant-numeric: tabular-nums; }
+    .muted { color:#9aa3b2 }
+    .ok { color:#d1e9ff }
   </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>poeopt-rates</h1>
-  <div class="muted">Источник: Funpay · <a href="./rates.json">rates.json</a></div>
+  <div class="wrap">
+    <h1>poeopt-rates</h1>
+    <small class="mono">Источник: Funpay · <a href="./rates.json">rates.json</a></small>
 
-  <table id="tbl">
-    <thead>
-      <tr>
-        <th>key</th>
-        <th>Игра</th>
-        <th>Валюта</th>
-        <th class="num">Цена, ₽</th>
-        <th>Обновлено</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th style="width:200px">key</th>
+          <th style="width:80px">Игра</th>
+          <th style="width:220px">Валюта</th>
+          <th style="width:120px">Цена, ₽</th>
+          <th>ТОП-5 (₽)</th>
+          <th style="width:210px">Обновлено</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-<script>
-(async () => {
-  const res = await fetch('./rates.json', {cache:'no-store'});
-  const data = await res.json();
-  const tbody = document.querySelector('#tbl tbody');
-  const pairs = data.pairs || {};
-  const keys = Object.keys(pairs);
-  if (!keys.length) {
-    tbody.innerHTML = '<tr><td colspan="5">Нет данных</td></tr>';
-    return;
-  }
-  for (const k of keys) {
-    const p = pairs[k];
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><span class="pill">${k}</span></td>
-      <td>${p.game ?? ''}</td>
-      <td>${p.currency ?? ''}</td>
-      <td class="num">${(p.price_RUB ?? 0).toFixed(2)}</td>
-      <td>${(p.updated_at ?? '').replace('T',' ').replace('Z','')}</td>
-    `;
-    tbody.appendChild(tr);
-  }
-})();
-</script>
+  <script>
+    async function main() {
+      const res = await fetch("./rates.json", { cache: "no-cache" });
+      const data = await res.json();
+
+      const tbody = document.querySelector("#tbl tbody");
+      tbody.innerHTML = "";
+
+      for (const [key, row] of Object.entries(data.pairs)) {
+        const top = Array.isArray(row.trades_tops) ? row.trades_tops : [];
+        const price = Number.isFinite(row.price_RUB) && row.price_RUB > 0
+          ? row.price_RUB
+          : (top[0] ?? 0);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><span class="key">${key}</span></td>
+          <td>${row.game}</td>
+          <td>${row.currency}</td>
+          <td class="ok">${price.toFixed(2)}</td>
+          <td><div class="chips">${
+            top.length ? top.map(v => `<span class="chip">${Number(v).toFixed(2)}</span>`).join("")
+                       : `<span class="muted">—</span>`
+          }</div></td>
+          <td class="muted">${row.updated_at || "—"}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+    main().catch(console.error);
+  </script>
 </body>
 </html>
