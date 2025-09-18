@@ -1,36 +1,36 @@
 {
-  "updated_at": "2025-09-18T06:51:46.044Z",
+  "updated_at": "2025-09-18T06:53:50.432Z",
   "source": "funpay",
   "pairs": {
     "le:gold": {
       "game": "le",
       "currency": "gold",
-      "price_RUB": 23.01,
+      "price_RUB": 0.022,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T06:51:47.334Z",
-      "trades_top5": [
-        23.01,
-        32.88,
-        33.36,
-        33.37,
-        33.37
+      "updated_at": "2025-09-18T06:54:10.856Z",
+      "trades_tops": [
+        0.022,
+        0.022,
+        0.027,
+        0.028,
+        0.041
       ],
       "error": null
     },
     "tli:flame-elementium": {
       "game": "tli",
       "currency": "flame-elementium",
-      "price_RUB": 0.044,
+      "price_RUB": 0.00052,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-18T06:51:47.881Z",
-      "trades_top5": [
-        0.044,
-        0.045,
-        0.049,
-        0.05,
-        0.051
+      "updated_at": "2025-09-18T06:54:14.816Z",
+      "trades_tops": [
+        0.00052,
+        0.00052,
+        0.00052,
+        0.00054,
+        0.00058
       ],
       "error": null
     },
@@ -41,8 +41,8 @@
       "change_24h": null,
       "change_7d": null,
       "updated_at": null,
-      "trades_top5": [],
-      "error": "Не дождался селекторов: .tc-item .tc-price"
+      "trades_tops": [],
+      "error": "Не найдены цены. Пытались искать .tc-price / table.tc-table"
     },
     "poe1:divine-orb": {
       "game": "poe1",
@@ -51,8 +51,8 @@
       "change_24h": null,
       "change_7d": null,
       "updated_at": null,
-      "trades_top5": [],
-      "error": "Не дождался селекторов: .tc-item .tc-price"
+      "trades_tops": [],
+      "error": "Не найдены цены. Пытались искать .tc-price / table.tc-table"
     }
   }
 }
