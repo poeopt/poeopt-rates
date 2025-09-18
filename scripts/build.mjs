@@ -3,120 +3,150 @@ import { chromium } from "playwright";
 import fs from "fs/promises";
 import path from "path";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// paths
 const ROOT = path.resolve(".");
 const MAP_PATH = path.join(ROOT, "mapping.json");
 const OUT_JSON = path.join(ROOT, "public", "rates.json");
 const DEBUG_DIR = path.join(ROOT, "debug");
 
-// ────────────────────────────────────────────────────────────────────────────────
-// утилиты
-
+// ─────────────────────────────────────────────────────────────────────────────
+// utils
 const nowIso = () => new Date().toISOString();
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** имена файлов для артефактов без двоеточий и проблемных символов */
 function sanitize(name) {
-  return String(name)
-    .replace(/[:"<>|?*\r\n]/g, "-")
-    .replace(/\s+/g, " ")
-    .trim();
+  // для upload-artifact: убираем запрещённые символы (в т.ч. двоеточие)
+  return String(name).replace(/[":<>|?*\\/\r\n]/g, "-").replace(/\s+/g, "_");
 }
 
 async function ensureDir(p) {
-  try { await fs.mkdir(p, { recursive: true }); } catch {}
+  await fs.mkdir(p, { recursive: true }).catch(() => {});
 }
 
-function parseRUB(text) {
-  if (!text) return null;
-  // оставляем цифры, точку/запятую
-  const m = text.replace(/\s/g, "").replace(",", ".").match(/(\d+(?:\.\d+)?)/);
-  return m ? Number(m[1]) : null;
-}
-
-// нажать «Показать ещё» если есть
-async function clickShowMore(page) {
-  // на FunPay эта кнопка часто имеет текст “Показать ещё ... предложений”
-  const btn = page.locator('button:has-text("Показать ещё")');
-  if (await btn.count()) {
-    try { await btn.first().click({ timeout: 1000 }); return true; } catch {}
+async function saveDebug(key, page, extra = {}) {
+  const safe = sanitize(key);
+  const base = path.join(DEBUG_DIR, safe);
+  const shot = `${base}.png`;
+  const html = `${base}.html`;
+  await ensureDir(DEBUG_DIR);
+  try {
+    await page.screenshot({ path: shot, fullPage: true });
+  } catch {}
+  try {
+    await fs.writeFile(html, await page.content(), "utf8");
+  } catch {}
+  // небольшая текстовая сводка
+  if (extra && Object.keys(extra).length) {
+    await fs.writeFile(`${base}.json`, JSON.stringify(extra, null, 2), "utf8");
   }
-  // бывают скрытые lazyload-кнопки
-  const lazyBtn = page.locator(".lazyload-more:not(.hidden)");
-  if (await lazyBtn.count()) {
-    try { await lazyBtn.first().click({ timeout: 1000 }); return true; } catch {}
+}
+
+// ждём первый из селекторов
+async function waitAny(page, selectors, timeout = 20000) {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    for (const s of selectors) {
+      const el = await page.$(s);
+      if (el) return el;
+    }
+    await sleep(100);
+  }
+  throw new Error(
+    `waitAny timeout ${timeout}ms. selectors: ${selectors.join(", ")}`
+  );
+}
+
+// выбираем опцию по видимому тексту (label)
+async function selectByLabel(page, sel, label) {
+  if (!label) return;
+  const el = await page.$(sel);
+  if (!el) return;
+  try {
+    // стандартный путь
+    const result = await page.selectOption(sel, { label });
+    if (result && result.length) return true;
+  } catch {}
+  // fallback: ищем option вручную и выбираем value
+  const value = await page.$eval(
+    sel,
+    (node, label) => {
+      const opts = Array.from(node.querySelectorAll("option"));
+      const found =
+        opts.find((o) => (o.textContent || "").trim() === label) ||
+        opts.find((o) =>
+          (o.textContent || "").trim().toLowerCase().includes(label.toLowerCase())
+        );
+      return found ? found.value : null;
+    },
+    label
+  );
+  if (value) {
+    try {
+      const result = await page.selectOption(sel, { value });
+      if (result && result.length) return true;
+    } catch {}
   }
   return false;
 }
 
-// плавный скролл вниз, чтобы лениво подгрузились карточки
-async function autoScroll(page, steps = 6) {
-  for (let i = 0; i < steps; i++) {
-    await page.mouse.wheel(0, 1200);
-    await sleep(350);
+// извлекаем цены, сортируем по возрастанию, берём ТОП-5
+async function extractTop5Prices(page) {
+  // ждём, пока появятся карточки или таблица с ценами
+  await waitAny(
+    page,
+    [
+      ".tc-item .tc-price", // карточки
+      "table.tc-table .tc-item", // старая таблица
+      ".showcase-table .tc-item .tc-price",
+    ],
+    20000
+  );
+
+  // забираем как можно больше видимых цен (и с карточек, и из таблицы)
+  const all = await page.$$eval(
+    [
+      ".tc-item .tc-price",
+      "table.tc-table .tc-item .tc-price",
+      ".showcase-table .tc-item .tc-price",
+    ].join(","),
+    (nodes) =>
+      nodes
+        .map((n) => {
+          // в блоке обычно: <div class="tc-price"><div><span class="unit">₽</span> 1.27</div></div>
+          const t = (n.textContent || "")
+            .replace(/\u00a0/g, " ")
+            .replace(/[^\d.,]/g, "")
+            .trim();
+          if (!t) return null;
+          // меняем запятую на точку и парсим
+          const num = parseFloat(t.replace(",", "."));
+          return Number.isFinite(num) ? num : null;
+        })
+        .filter((x) => x !== null)
+  );
+
+  if (!all.length) return [];
+
+  // берём ТОП-5 минимальных (может быть неотсортированная выдача у PoE2)
+  const sorted = [...all].sort((a, b) => a - b);
+
+  // немного схлопнем почти-дубликаты (например 0.02, 0.020, 0.021)
+  const unique = [];
+  for (const v of sorted) {
+    if (!unique.length || Math.abs(unique[unique.length - 1] - v) > 1e-6) {
+      unique.push(v);
+    }
+    if (unique.length >= 5) break;
   }
+  return unique.slice(0, 5);
 }
 
-/** Собираем цены с карточек .tc-item .tc-price (работает и для chips, и для currencies) */
-async function collectTopPrices(page, need = 5) {
-  // ждём появления хотя бы какой-то цены
-  await page.waitForSelector(".tc-price", { timeout: 20000 });
+// основной парсер одной страницы
+async function parsePair(page, pair) {
+  const { key, funpay_url, league, type } = pair;
 
-  let prices = [];
-  // пробуем несколько раундов: скролл/показать ещё → собрать → достаточно? выходим
-  for (let round = 0; round < 5; round++) {
-    const texts = await page.$$eval(".tc-price", els =>
-      els.map(e => e.textContent || "")
-    );
-    prices = texts.map(parseRUB).filter(v => Number.isFinite(v));
-
-    if (prices.length >= need) break;
-
-    let clicked = await clickShowMore(page);
-    await autoScroll(page, 2);
-    if (!clicked) await sleep(400);
-  }
-
-  // сортируем по возрастанию, берём уникальные первые N
-  prices.sort((a, b) => a - b);
-  const uniq = [];
-  for (const p of prices) {
-    if (!uniq.length || Math.abs(uniq[uniq.length - 1] - p) > 1e-9) uniq.push(p);
-    if (uniq.length === need) break;
-  }
-  return uniq.slice(0, need);
-}
-
-/** выбрать сезон/лигу в выпадашке, если просят */
-async function selectLeague(page, leagueText) {
-  if (!leagueText) return;
-  // общий селектор их фильтра сервера/лиги
-  const dd = page.locator("select.showcase-filter-input");
-  try {
-    await dd.waitFor({ timeout: 8000 });
-  } catch {
-    // на некоторых чипс-страницах нет выпадашки – ок
-    return;
-  }
-
-  // находим option по видимому тексту (частичное совпадение)
-  const value = await dd.evaluate((sel, needle) => {
-    const opts = Array.from(sel.options || []);
-    const f = opts.find(o => (o.textContent || "").toLowerCase().includes(needle.toLowerCase()));
-    return f ? f.value : null;
-  }, leagueText);
-
-  if (value) {
-    await dd.selectOption(value);
-    // даём странице отработать фильтр
-    await page.waitForLoadState("networkidle").catch(() => {});
-    await sleep(700);
-  }
-}
-
-/** основной шаг по одной паре */
-async function fetchPair(browser, pair, idx) {
-  const page = await browser.newPage({ viewport: { width: 1360, height: 900 } });
-  let result = {
+  const result = {
     game: pair.game,
     currency: pair.currency,
     price_RUB: 0,
@@ -127,60 +157,119 @@ async function fetchPair(browser, pair, idx) {
     error: null,
   };
 
-  const debugBase = sanitize(`${idx + 1}-${pair.key}`);
-  const dbgDir = path.join(DEBUG_DIR, debugBase);
-  await ensureDir(dbgDir);
-
   try {
-    await page.goto(pair.funpay_url, { waitUntil: "domcontentloaded", timeout: 45000 });
-    // выбираем сезон/лигу (если указана)
-    await selectLeague(page, pair.league);
+    await page.goto(funpay_url, { waitUntil: "domcontentloaded", timeout: 45000 });
+    // иногда Funpay лениво дорисовывает — чуть подождём
+    await sleep(750);
 
-    // собираем цены (ТОП-5 без усреднения)
-    const tops = await collectTopPrices(page, Math.max(5, pair.avg_top || 5));
-    result.trades_tops = tops;
-    result.price_RUB = tops.length ? tops[0] : 0;
-    result.updated_at = nowIso();
+    // ====== фильтры (лига / тип) ======
+    // Лига (везде это select[name="server"])
+    try {
+      const leagueSelect = await page.$('select[name="server"]');
+      if (leagueSelect && league) {
+        await selectByLabel(page, 'select[name="server"]', league);
+        await page.waitForLoadState("domcontentloaded").catch(() => {});
+        await sleep(600);
+      }
+    } catch {}
 
-    // скрин + html в debug
-    await page.screenshot({ path: path.join(dbgDir, "screen.png"), fullPage: true }).catch(() => {});
-    await fs.writeFile(path.join(dbgDir, "page.html"), await page.content()).catch(() => {});
+    // Тип (на PoE/PoE2 — второй селект в .showcase-filters; на страницах конкретной валюты может отсутствовать)
+    if (type) {
+      try {
+        const selects = await page.$$(".showcase-filters select");
+        const typeSelect = await (async () => {
+          for (const s of selects) {
+            const name = (await s.getAttribute("name")) || "";
+            if (name !== "server") return s;
+          }
+          return null;
+        })();
+        if (typeSelect) {
+          const sel = await typeSelect.evaluate((n) => n.matches("select") ? n : null);
+          if (sel) {
+            const css = await typeSelect.evaluate((n) => {
+              const id = n.getAttribute("id");
+              return id ? `#${id}` : null;
+            });
+            const typeSelector =
+              css || (await typeSelect.evaluate(() => null)) || ".showcase-filters select:not([name=server])";
+            await selectByLabel(page, typeSelector, type);
+            await page.waitForLoadState("domcontentloaded").catch(() => {});
+            await sleep(600);
+          }
+        }
+      } catch {}
+    }
+
+    // иногда после смены фильтров остаётся "ленивая" пагинация, на всякий — ждём карточки/цены
+    await waitAny(
+      page,
+      [".tc-item .tc-price", "table.tc-table .tc-item .tc-price", ".showcase-table .tc-item .tc-price"],
+      20000
+    );
+
+    // собираем цены
+    const tops = await extractTop5Prices(page);
+
+    if (!tops.length) {
+      result.error = "Нет видимых цен";
+    } else {
+      result.trades_tops = tops;
+      result.price_RUB = tops[0] ?? 0;
+      result.updated_at = nowIso();
+    }
+
+    // лог-скрин
+    await saveDebug(key, page, { key, funpay_url, league, type, tops: result.trades_tops });
   } catch (e) {
     result.error = String(e?.message || e);
-    // скрин ошибки
-    try { await page.screenshot({ path: path.join(dbgDir, "error.png"), fullPage: true }); } catch {}
-  } finally {
-    await page.close();
+    // лог-скрин при ошибке
+    try {
+      await saveDebug(`${key}__error`, page, { key, funpay_url, league, type, error: result.error });
+    } catch {}
   }
-  return [pair.key, result];
+
+  return result;
 }
 
-async function main() {
+// ─────────────────────────────────────────────────────────────────────────────
+// main
+(async () => {
   await ensureDir(path.dirname(OUT_JSON));
   await ensureDir(DEBUG_DIR);
 
-  const raw = await fs.readFile(MAP_PATH, "utf8");
-  /** @type {{key:string,game:string,currency:string,funpay_url:string,fallback_root?:string,league?:string,avg_top?:number}[]} */
-  const mapping = JSON.parse(raw);
-
   const browser = await chromium.launch({ headless: true });
-  const pairs = {};
+  const ctx = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36",
+    viewport: { width: 1440, height: 900 },
+  });
+  const page = await ctx.newPage();
+
+  let mapping = [];
   try {
-    let i = 0;
-    for (const m of mapping) {
-      const [key, res] = await fetchPair(browser, m, i++);
-      pairs[key] = res;
-    }
-  } finally {
+    mapping = JSON.parse(await fs.readFile(MAP_PATH, "utf8"));
+  } catch (e) {
+    console.error("mapping.json read error:", e);
     await browser.close();
+    process.exit(1);
   }
 
-  const out = { updated_at: nowIso(), source: "funpay", pairs };
-  await fs.writeFile(OUT_JSON, JSON.stringify(out, null, 2), "utf8");
-  console.log("✅ rates.json updated:", OUT_JSON);
-}
+  const out = {
+    updated_at: nowIso(),
+    source: "funpay",
+    pairs: {},
+  };
 
-main().catch(async (e) => {
-  console.error("Build failed:", e);
-  process.exit(1);
-});
+  for (const pair of mapping) {
+    console.log("→ parse", pair.key, pair.funpay_url);
+    const data = await parsePair(page, pair);
+    out.pairs[pair.key] = data;
+    // небольшая пауза между страницами
+    await sleep(500);
+  }
+
+  await fs.writeFile(OUT_JSON, JSON.stringify(out, null, 2), "utf8");
+  await browser.close();
+  console.log("done:", OUT_JSON);
+})();
