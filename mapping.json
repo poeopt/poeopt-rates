@@ -5,18 +5,18 @@
     "currency": "gold",
     "chips": 200,
     "funpay_url": "https://funpay.com/chips/200/",
+    "fallback_root": "https://funpay.com/chips/",
     "league": "Beneath Ancient Skies (Standard)",
-    "type": null,
     "avg_top": 5
   },
   {
     "key": "tli:flame-elementium",
     "game": "tli",
     "currency": "flame-elementium",
-    "chips": 171,
-    "funpay_url": "https://funpay.com/chips/171/",
+    "chips": 177,
+    "funpay_url": "https://funpay.com/chips/177/",
+    "fallback_root": "https://funpay.com/chips/",
     "league": "(EU) Outlaw Season",
-    "type": null,
     "avg_top": 5
   },
   {
@@ -25,8 +25,8 @@
     "currency": "divine-orb",
     "chips": 173,
     "funpay_url": "https://funpay.com/chips/173/",
+    "fallback_root": "https://funpay.com/chips/",
     "league": "(PC) Mercenaries",
-    "type": "Божественные сферы",
     "avg_top": 5
   },
   {
@@ -35,8 +35,8 @@
     "currency": "divine-orb",
     "chips": 209,
     "funpay_url": "https://funpay.com/chips/209/",
+    "fallback_root": "https://funpay.com/chips/",
     "league": "Rise of the Abyssal",
-    "type": "Божественные сферы",
     "avg_top": 5
   }
 ]
