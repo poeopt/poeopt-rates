@@ -1,16 +1,13 @@
 {
   "name": "poeopt-rates",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "private": true,
   "scripts": {
     "build": "node scripts/build.mjs"
   },
+  "postinstall": "npx playwright install --with-deps",
   "dependencies": {
     "playwright": "^1.47.2"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "postinstall": "npx playwright install --with-deps chromium"
+  }
 }
