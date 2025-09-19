@@ -1,16 +1,22 @@
 {
-  "updated_at": "2025-09-19T13:36:09.304Z",
+  "updated_at": "2025-09-19T13:55:11.422Z",
   "source": "funpay",
   "pairs": {
     "le:gold": {
       "game": "le",
       "currency": "gold",
-      "price_RUB": 0,
+      "price_RUB": 1.84,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": null,
-      "trades_tops": [],
-      "error": "page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://funpay.com/chips/200/\", waiting until \"domcontentloaded\"\n"
+      "updated_at": "2025-09-19T13:55:14.350Z",
+      "trades_tops": [
+        1.84,
+        1.88,
+        2.29,
+        2.37,
+        3.45
+      ],
+      "error": null
     },
     "tli:flame-elementium": {
       "game": "tli",
@@ -28,13 +34,13 @@
       "price_RUB": 0.97,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-19T13:37:34.831Z",
+      "updated_at": "2025-09-19T13:55:39.066Z",
       "trades_tops": [
         0.97,
+        1.01,
         1.05,
         1.09,
-        1.16,
-        1.17
+        1.16
       ],
       "error": null
     },
@@ -44,7 +50,7 @@
       "price_RUB": 0.03,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-19T13:38:08.957Z",
+      "updated_at": "2025-09-19T13:56:13.392Z",
       "trades_tops": [
         0.03,
         0.034,
