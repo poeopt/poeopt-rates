@@ -3,149 +3,130 @@ import { chromium } from "playwright";
 import fs from "fs/promises";
 import path from "path";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// paths
 const ROOT = path.resolve(".");
 const MAP_PATH = path.join(ROOT, "mapping.json");
 const OUT_JSON = path.join(ROOT, "public", "rates.json");
 const DEBUG_DIR = path.join(ROOT, "debug");
 
-// ─────────────────────────────────────────────────────────────────────────────
-// utils
+// ───────────────────────────────────────────────────────────────────────────────
+// УТИЛИТЫ
 const nowIso = () => new Date().toISOString();
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-function sanitize(name) {
-  // для upload-artifact: убираем запрещённые символы (в т.ч. двоеточие)
-  return String(name).replace(/[":<>|?*\\/\r\n]/g, "-").replace(/\s+/g, "_");
-}
+// запрещённые для upload-artifact символы
+const sanitize = (name) => String(name).replace(/[:*?"<>|\\/\r\n]/g, "-").replace(/\s+/g, " ").trim();
 
+// гарантируем каталоги
 async function ensureDir(p) {
   await fs.mkdir(p, { recursive: true }).catch(() => {});
 }
 
-async function saveDebug(key, page, extra = {}) {
-  const safe = sanitize(key);
-  const base = path.join(DEBUG_DIR, safe);
-  const shot = `${base}.png`;
-  const html = `${base}.html`;
+// чтение JSON карты
+async function readMapping() {
+  const raw = await fs.readFile(MAP_PATH, "utf-8");
+  const arr = JSON.parse(raw);
+  return arr;
+}
+
+// скрин страницы + html кусочек для дебага
+async function dumpDebug(page, key, step = "") {
+  const base = sanitize(`${key}${step ? "-" + step : ""}`);
   await ensureDir(DEBUG_DIR);
   try {
-    await page.screenshot({ path: shot, fullPage: true });
+    await page.screenshot({ path: path.join(DEBUG_DIR, `${base}.png`), fullPage: true });
   } catch {}
-  try {
-    await fs.writeFile(html, await page.content(), "utf8");
-  } catch {}
-  // небольшая текстовая сводка
-  if (extra && Object.keys(extra).length) {
-    await fs.writeFile(`${base}.json`, JSON.stringify(extra, null, 2), "utf8");
-  }
 }
 
-// ждём первый из селекторов
-async function waitAny(page, selectors, timeout = 20000) {
-  const start = Date.now();
-  while (Date.now() - start < timeout) {
-    for (const s of selectors) {
-      const el = await page.$(s);
-      if (el) return el;
+// извлекаем числа из текстового узла с ценой
+function parsePrice(text) {
+  if (!text) return null;
+  const n = text.replace(/\s/g, "").replace(/[^0-9.,]/g, "").replace(",", ".");
+  const v = parseFloat(n);
+  return Number.isFinite(v) ? v : null;
+}
+
+// общий селектор цен в обеих возможных вёрстках
+const PRICE_CELLS =
+  ".tc-table .tc-item:not(.lazyload-hidden) .tc-price, " +
+  ".showcase-table .tc-item:not(.lazyload-hidden) .tc-price";
+
+// ждём появления хотя бы одной видимой цены
+async function waitPrices(page, timeoutMs = 30000) {
+  await page.waitForSelector(PRICE_CELLS, { timeout: timeoutMs });
+}
+
+// читает до 5 первых видимых цен
+async function readTop5(page) {
+  const items = await page.$$eval(PRICE_CELLS, nodes => {
+    const isVisible = (el) => {
+      const s = getComputedStyle(el);
+      if (s.visibility === "hidden" || s.display === "none") return false;
+      // offsetParent null — чаще всего скрыт
+      if (!el.offsetParent) return false;
+      return true;
+    };
+    const out = [];
+    for (const n of nodes) {
+      if (!isVisible(n)) continue;
+      const t = n.textContent || "";
+      out.push(t);
+      if (out.length >= 12) break; // небольшой буфер (бывает мусор вроде "шт" / "₽")
     }
-    await sleep(100);
-  }
-  throw new Error(
-    `waitAny timeout ${timeout}ms. selectors: ${selectors.join(", ")}`
-  );
+    return out;
+  });
+
+  // превращаем в числа, фильтруем и берём первые 5
+  const nums = items
+    .map(parsePrice)
+    .filter(v => v !== null && v >= 0)
+    .slice(0, 5);
+
+  return nums;
 }
 
-// выбираем опцию по видимому тексту (label)
-async function selectByLabel(page, sel, label) {
-  if (!label) return;
-  const el = await page.$(sel);
-  if (!el) return;
-  try {
-    // стандартный путь
-    const result = await page.selectOption(sel, { label });
-    if (result && result.length) return true;
-  } catch {}
-  // fallback: ищем option вручную и выбираем value
-  const value = await page.$eval(
-    sel,
-    (node, label) => {
-      const opts = Array.from(node.querySelectorAll("option"));
-      const found =
-        opts.find((o) => (o.textContent || "").trim() === label) ||
-        opts.find((o) =>
-          (o.textContent || "").trim().toLowerCase().includes(label.toLowerCase())
-        );
-      return found ? found.value : null;
-    },
-    label
-  );
-  if (value) {
-    try {
-      const result = await page.selectOption(sel, { value });
-      if (result && result.length) return true;
-    } catch {}
-  }
-  return false;
-}
-
-// извлекаем цены, сортируем по возрастанию, берём ТОП-5
-async function extractTop5Prices(page) {
-  // ждём, пока появятся карточки или таблица с ценами
-  await waitAny(
-    page,
-    [
-      ".tc-item .tc-price", // карточки
-      "table.tc-table .tc-item", // старая таблица
-      ".showcase-table .tc-item .tc-price",
-    ],
-    20000
-  );
-
-  // забираем как можно больше видимых цен (и с карточек, и из таблицы)
-  const all = await page.$$eval(
-    [
-      ".tc-item .tc-price",
-      "table.tc-table .tc-item .tc-price",
-      ".showcase-table .tc-item .tc-price",
-    ].join(","),
-    (nodes) =>
-      nodes
-        .map((n) => {
-          // в блоке обычно: <div class="tc-price"><div><span class="unit">₽</span> 1.27</div></div>
-          const t = (n.textContent || "")
-            .replace(/\u00a0/g, " ")
-            .replace(/[^\d.,]/g, "")
-            .trim();
-          if (!t) return null;
-          // меняем запятую на точку и парсим
-          const num = parseFloat(t.replace(",", "."));
-          return Number.isFinite(num) ? num : null;
-        })
-        .filter((x) => x !== null)
-  );
-
-  if (!all.length) return [];
-
-  // берём ТОП-5 минимальных (может быть неотсортированная выдача у PoE2)
-  const sorted = [...all].sort((a, b) => a - b);
-
-  // немного схлопнем почти-дубликаты (например 0.02, 0.020, 0.021)
-  const unique = [];
-  for (const v of sorted) {
-    if (!unique.length || Math.abs(unique[unique.length - 1] - v) > 1e-6) {
-      unique.push(v);
+// кликаем/скрываем возможные баннеры согласия (если появятся)
+async function closeBanners(page) {
+  const candidates = [
+    "button.cookies-accept",
+    ".fc-cta-consent button",
+    "button.fc-cta-consent",
+  ];
+  for (const sel of candidates) {
+    const has = await page.locator(sel).first().catch(() => null);
+    if (has && await has.count()) {
+      try { await has.click({ timeout: 1000 }); } catch {}
     }
-    if (unique.length >= 5) break;
   }
-  return unique.slice(0, 5);
 }
 
-// основной парсер одной страницы
+// выбираем лигу по названию, если селектор есть
+async function selectLeague(page, desiredLabel) {
+  if (!desiredLabel) return false;
+  const sel = page.locator('select[name="server"]');
+  if (!(await sel.count())) return false;
+
+  // подгрузка опций
+  await sel.waitFor({ state: "visible", timeout: 10000 }).catch(() => {});
+  // пробуем выбрать по метке
+  try {
+    await sel.selectOption({ label: desiredLabel });
+  } catch {
+    // запасной вариант — ищем по includes (иногда кавычки/скобки отличаются)
+    const options = await sel.evaluate(el => Array.from(el.options).map(o => o.text));
+    const found = options.find(t => t.trim().toLowerCase().includes(desiredLabel.trim().toLowerCase()));
+    if (found) {
+      await sel.selectOption({ label: found });
+    }
+  }
+
+  // ждём, пока таблица перерисуется
+  await page.waitForLoadState("networkidle").catch(() => {});
+  await sleep(1200);
+  return true;
+}
+
+// основной парсинг одной позиции
 async function parsePair(page, pair) {
-  const { key, funpay_url, league, type } = pair;
-
   const result = {
     game: pair.game,
     currency: pair.currency,
@@ -157,119 +138,123 @@ async function parsePair(page, pair) {
     error: null,
   };
 
-  try {
-    await page.goto(funpay_url, { waitUntil: "domcontentloaded", timeout: 45000 });
-    // иногда Funpay лениво дорисовывает — чуть подождём
-    await sleep(750);
+  const openTargets = [
+    pair.funpay_url,
+    // дополнительная запасная ссылка (если кто-то поменяет mapping на корень)
+    pair.fallback_root ? pair.fallback_root + String(pair.chips || "").replace(/^\/+/, "") + "/" : null,
+  ].filter(Boolean);
 
-    // ====== фильтры (лига / тип) ======
-    // Лига (везде это select[name="server"])
+  let opened = false;
+  for (const url of openTargets) {
     try {
-      const leagueSelect = await page.$('select[name="server"]');
-      if (leagueSelect && league) {
-        await selectByLabel(page, 'select[name="server"]', league);
-        await page.waitForLoadState("domcontentloaded").catch(() => {});
-        await sleep(600);
-      }
-    } catch {}
-
-    // Тип (на PoE/PoE2 — второй селект в .showcase-filters; на страницах конкретной валюты может отсутствовать)
-    if (type) {
-      try {
-        const selects = await page.$$(".showcase-filters select");
-        const typeSelect = await (async () => {
-          for (const s of selects) {
-            const name = (await s.getAttribute("name")) || "";
-            if (name !== "server") return s;
-          }
-          return null;
-        })();
-        if (typeSelect) {
-          const sel = await typeSelect.evaluate((n) => n.matches("select") ? n : null);
-          if (sel) {
-            const css = await typeSelect.evaluate((n) => {
-              const id = n.getAttribute("id");
-              return id ? `#${id}` : null;
-            });
-            const typeSelector =
-              css || (await typeSelect.evaluate(() => null)) || ".showcase-filters select:not([name=server])";
-            await selectByLabel(page, typeSelector, type);
-            await page.waitForLoadState("domcontentloaded").catch(() => {});
-            await sleep(600);
-          }
-        }
-      } catch {}
-    }
-
-    // иногда после смены фильтров остаётся "ленивая" пагинация, на всякий — ждём карточки/цены
-    await waitAny(
-      page,
-      [".tc-item .tc-price", "table.tc-table .tc-item .tc-price", ".showcase-table .tc-item .tc-price"],
-      20000
-    );
-
-    // собираем цены
-    const tops = await extractTop5Prices(page);
-
-    if (!tops.length) {
-      result.error = "Нет видимых цен";
-    } else {
-      result.trades_tops = tops;
-      result.price_RUB = tops[0] ?? 0;
-      result.updated_at = nowIso();
-    }
-
-    // лог-скрин
-    await saveDebug(key, page, { key, funpay_url, league, type, tops: result.trades_tops });
-  } catch (e) {
-    result.error = String(e?.message || e);
-    // лог-скрин при ошибке
-    try {
-      await saveDebug(`${key}__error`, page, { key, funpay_url, league, type, error: result.error });
+      await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
+      opened = true;
+      break;
     } catch {}
   }
+  if (!opened) {
+    result.error = "Не удалось открыть страницу Funpay";
+    return result;
+  }
 
+  await closeBanners(page);
+  await dumpDebug(page, pair.key, "open");
+
+  // если нужна конкретная лига — выбираем
+  try {
+    await selectLeague(page, pair.league || "");
+  } catch {}
+
+  // небольшой «дохаживатель» — иногда таблица дорисовывается после idle
+  await sleep(800);
+
+  // ждём цен
+  try {
+    await waitPrices(page, 35000);
+  } catch (e) {
+    result.error = `waitForPrices timeout: ${e?.message || e}`;
+    await dumpDebug(page, pair.key, "no-prices");
+    return result;
+  }
+
+  // берём цены
+  let top5 = [];
+  try {
+    top5 = await readTop5(page);
+  } catch (e) {
+    result.error = `extract error: ${e?.message || e}`;
+    await dumpDebug(page, pair.key, "extract-error");
+    return result;
+  }
+
+  // если вдруг таблица пустая/фильтры — зафиксируем
+  if (!top5.length) {
+    result.error = "Нет видимых цен";
+    await dumpDebug(page, pair.key, "empty");
+  }
+
+  result.trades_tops = top5;
+  result.price_RUB = top5.length ? top5[0] : 0;
+  result.updated_at = nowIso();
+  await dumpDebug(page, pair.key, "done");
   return result;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// main
-(async () => {
+// ───────────────────────────────────────────────────────────────────────────────
+// BUILD
+
+async function main() {
   await ensureDir(path.dirname(OUT_JSON));
   await ensureDir(DEBUG_DIR);
 
-  const browser = await chromium.launch({ headless: true });
-  const ctx = await browser.newContext({
-    userAgent:
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36",
-    viewport: { width: 1440, height: 900 },
+  const mapping = await readMapping();
+
+  const browser = await chromium.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-dev-shm-usage"],
   });
+
+  const ctx = await browser.newContext({
+    locale: "ru-RU",
+    timezoneId: "Europe/Moscow",
+    userAgent:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
+  });
+
   const page = await ctx.newPage();
 
-  let mapping = [];
-  try {
-    mapping = JSON.parse(await fs.readFile(MAP_PATH, "utf8"));
-  } catch (e) {
-    console.error("mapping.json read error:", e);
-    await browser.close();
-    process.exit(1);
+  const pairs = {};
+  for (const pair of mapping) {
+    try {
+      const res = await parsePair(page, pair);
+      pairs[pair.key] = res;
+    } catch (e) {
+      pairs[pair.key] = {
+        game: pair.game,
+        currency: pair.currency,
+        price_RUB: 0,
+        change_24h: null,
+        change_7d: null,
+        updated_at: nowIso(),
+        trades_tops: [],
+        error: (e && e.message) ? e.message : String(e),
+      };
+    }
   }
 
-  const out = {
+  await browser.close();
+
+  const payload = {
     updated_at: nowIso(),
     source: "funpay",
-    pairs: {},
+    pairs,
   };
 
-  for (const pair of mapping) {
-    console.log("→ parse", pair.key, pair.funpay_url);
-    const data = await parsePair(page, pair);
-    out.pairs[pair.key] = data;
-    // небольшая пауза между страницами
-    await sleep(500);
-  }
+  await fs.writeFile(OUT_JSON, JSON.stringify(payload, null, 2), "utf-8");
+  console.log("✓ rates.json updated:", OUT_JSON);
+}
 
-  await fs.writeFile(OUT_JSON, JSON.stringify(out, null, 2), "utf8");
-  await browser.close();
-  console.log("done:", OUT_JSON);
-})();
+main().catch(async (e) => {
+  console.error(e);
+  process.exitCode = 1;
+});
