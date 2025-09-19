@@ -1,22 +1,16 @@
 {
-  "updated_at": "2025-09-19T16:58:09.722Z",
+  "updated_at": "2025-09-19T17:11:07.987Z",
   "source": "funpay",
   "pairs": {
     "le:gold": {
       "game": "le",
       "currency": "gold",
-      "price_RUB": 1.83,
+      "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-19T16:58:12.729Z",
-      "trades_tops": [
-        1.83,
-        1.84,
-        1.88,
-        2.29,
-        2.37
-      ],
-      "error": null
+      "updated_at": "2025-09-19T17:11:06.529Z",
+      "trades_tops": [],
+      "error": "page.locator(...).first(...).catch is not a function"
     },
     "tli:flame-elementium": {
       "game": "tli",
@@ -24,41 +18,29 @@
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": null,
+      "updated_at": "2025-09-19T17:11:06.880Z",
       "trades_tops": [],
-      "error": "waitAny timeout 20000ms. selectors: .tc-item .tc-price, table.tc-table .tc-item .tc-price, .showcase-table .tc-item .tc-price"
+      "error": "page.locator(...).first(...).catch is not a function"
     },
     "poe1:divine-orb": {
       "game": "poe1",
       "currency": "divine-orb",
-      "price_RUB": 0.97,
+      "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-19T16:58:37.445Z",
-      "trades_tops": [
-        0.97,
-        1.01,
-        1.05,
-        1.09,
-        1.16
-      ],
-      "error": null
+      "updated_at": "2025-09-19T17:11:07.264Z",
+      "trades_tops": [],
+      "error": "page.locator(...).first(...).catch is not a function"
     },
     "poe2:divine-orb": {
       "game": "poe2",
       "currency": "divine-orb",
-      "price_RUB": 0.03,
+      "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2025-09-19T16:59:11.812Z",
-      "trades_tops": [
-        0.03,
-        0.034,
-        0.035,
-        0.036,
-        0.047
-      ],
-      "error": null
+      "updated_at": "2025-09-19T17:11:07.956Z",
+      "trades_tops": [],
+      "error": "page.locator(...).first(...).catch is not a function"
     }
   }
 }
