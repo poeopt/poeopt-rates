@@ -1,4 +1,4 @@
-// scripts/build.mjs — POEOPT FunPay Parser v3.0
+// scripts/build.mjs — POEOPT FunPay Parser v3.1
 import { chromium } from "playwright";
 import fs from "fs/promises";
 import path from "path";
@@ -19,6 +19,27 @@ async function ensureDir(p) {
 async function readMapping() {
   const raw = await fs.readFile(MAP_PATH, "utf-8");
   return JSON.parse(raw);
+}
+
+// ─── Fetch real exchange rates from CBR (Central Bank of Russia) ───
+async function fetchExchangeRates() {
+  const fallback = { USD: 83, EUR: 90 };
+  try {
+    // CBR XML daily rates
+    const resp = await fetch("https://www.cbr-xml-daily.ru/daily_json.js", { signal: AbortSignal.timeout(10000) });
+    const data = await resp.json();
+    const usd = data?.Valute?.USD?.Value;
+    const eur = data?.Valute?.EUR?.Value;
+    const rates = {
+      USD: usd && usd > 10 ? Math.round(usd * 100) / 100 : fallback.USD,
+      EUR: eur && eur > 10 ? Math.round(eur * 100) / 100 : fallback.EUR,
+    };
+    console.log(`💱 Exchange rates from CBR: USD=${rates.USD}, EUR=${rates.EUR}`);
+    return rates;
+  } catch (e) {
+    console.log(`💱 Failed to fetch CBR rates: ${e.message}. Using fallback: USD=${fallback.USD}, EUR=${fallback.EUR}`);
+    return fallback;
+  }
 }
 
 // Parse a price/amount string like "9.94", "10 006", "3.36", "120 кк" into a number
@@ -163,7 +184,7 @@ async function extractTrades(page, limit = 10) {
 }
 
 // Main parse function for one game
-async function parsePair(page, pair) {
+async function parsePair(page, pair, exchangeRates) {
   const result = {
     game: pair.game,
     currency: pair.currency,
@@ -180,8 +201,9 @@ async function parsePair(page, pair) {
     error: null,
   };
 
-  // Open page
-  const urls = [pair.funpay_url, pair.fallback_root ? pair.fallback_root + String(pair.chips || "") + "/" : null].filter(Boolean);
+  // Open page — use /ru/ prefix to force Russian locale
+  const ruUrl = `https://funpay.com/ru/chips/${pair.chips}/`;
+  const urls = [ruUrl, pair.funpay_url].filter(Boolean);
   let opened = false;
   for (const url of urls) {
     try {
@@ -238,14 +260,26 @@ async function parsePair(page, pair) {
     const price = parsePrice(raw.price);
     const amount = parsePrice(raw.amount);
     // Detect currency from HTML
-    if (raw.priceHTML && raw.priceHTML.includes("$")) detectedCurrency = "USD";
+    if (raw.priceHTML) {
+      if (raw.priceHTML.includes("€")) detectedCurrency = "EUR";
+      else if (raw.priceHTML.includes("$")) detectedCurrency = "USD";
+      else if (raw.priceHTML.includes("₽")) detectedCurrency = "RUB";
+    }
     if (price !== null && price > 0) {
       trades.push({ price, amount: amount || 0 });
     }
   }
   
-  if (detectedCurrency === "USD") {
-    console.log(`  ⚠ Prices in USD detected! Cookie cy=RUB may not have worked.`);
+  // Convert foreign currency to RUB if needed
+  // FunPay shows USD/EUR when accessed from non-Russian IP (GitHub Actions)
+  const rate = detectedCurrency === "USD" ? (exchangeRates.USD || 83) 
+             : detectedCurrency === "EUR" ? (exchangeRates.EUR || 90) 
+             : 1;
+  if (rate !== 1) {
+    console.log(`  💱 Converting ${detectedCurrency} → RUB (rate: ${rate})`);
+    for (const t of trades) {
+      t.price = Math.round(t.price * rate * 100) / 100;
+    }
   }
 
   console.log(`  → Parsed ${trades.length} trades from ${rawTrades.length} raw items`);
@@ -277,6 +311,10 @@ async function main() {
   await ensureDir(DEBUG_DIR);
 
   const mapping = await readMapping();
+  
+  // Fetch real exchange rates from CBR
+  const exchangeRates = await fetchExchangeRates();
+  console.log(`\n📋 Parsing ${mapping.length} games...\n`);
 
   const browser = await chromium.launch({
     headless: true,
@@ -311,7 +349,7 @@ async function main() {
   for (const pair of mapping) {
     console.log(`\n📊 Parsing ${pair.key} (${pair.display_name})...`);
     try {
-      const res = await parsePair(page, pair);
+      const res = await parsePair(page, pair, exchangeRates);
       pairs[pair.key] = res;
       if (res.error) console.log(`  ❌ Error: ${res.error}`);
       else console.log(`  ✅ OK: ${res.trades.length} trades, price=${res.price_RUB}`);
@@ -340,6 +378,7 @@ async function main() {
   const payload = {
     updated_at: nowIso(),
     source: "funpay",
+    exchange_rates: exchangeRates,
     pairs,
   };
 
