@@ -1,42 +1,62 @@
 [
   {
-    "key": "le:gold",
-    "game": "le",
-    "currency": "gold",
-    "chips": 200,
-    "funpay_url": "https://funpay.com/chips/200/",
-    "fallback_root": "https://funpay.com/chips/",
-    "league": "Beneath Ancient Skies (Standard)",
-    "avg_top": 5
-  },
-  {
-    "key": "tli:flame-elementium",
-    "game": "tli",
-    "currency": "flame-elementium",
-    "chips": 177,
-    "funpay_url": "https://funpay.com/chips/177/",
-    "fallback_root": "https://funpay.com/chips/",
-    "league": "(EU) Outlaw Season",
-    "avg_top": 5
-  },
-  {
     "key": "poe1:divine-orb",
     "game": "poe1",
     "currency": "divine-orb",
+    "display_name": "Path of Exile 1",
+    "currency_name": "Божественные сферы",
     "chips": 173,
     "funpay_url": "https://funpay.com/chips/173/",
     "fallback_root": "https://funpay.com/chips/",
-    "league": "(PC) Mercenaries",
-    "avg_top": 5
+    "league": "(PC) Mirage",
+    "avg_top": 10
   },
   {
     "key": "poe2:divine-orb",
     "game": "poe2",
     "currency": "divine-orb",
+    "display_name": "Path of Exile 2",
+    "currency_name": "Божественные сферы",
     "chips": 209,
     "funpay_url": "https://funpay.com/chips/209/",
     "fallback_root": "https://funpay.com/chips/",
-    "league": "Rise of the Abyssal",
-    "avg_top": 5
+    "league": "(PC) Mirage",
+    "avg_top": 10
+  },
+  {
+    "key": "le:gold",
+    "game": "le",
+    "currency": "gold",
+    "display_name": "Last Epoch",
+    "currency_name": "Золото",
+    "chips": 200,
+    "funpay_url": "https://funpay.com/chips/200/",
+    "fallback_root": "https://funpay.com/chips/",
+    "league": "Beneath Ancient Skies (Standard)",
+    "avg_top": 10
+  },
+  {
+    "key": "tli:flame-elementium",
+    "game": "tli",
+    "currency": "flame-elementium",
+    "display_name": "Torchlight: Infinite",
+    "currency_name": "Элементиевое пламя",
+    "chips": 177,
+    "funpay_url": "https://funpay.com/chips/177/",
+    "fallback_root": "https://funpay.com/chips/",
+    "league": "(EU) Outlaw Season",
+    "avg_top": 10
+  },
+  {
+    "key": "quinfall:gold",
+    "game": "quinfall",
+    "currency": "gold",
+    "display_name": "The Quinfall",
+    "currency_name": "Золото",
+    "chips": 337,
+    "funpay_url": "https://funpay.com/chips/337/",
+    "fallback_root": "https://funpay.com/chips/",
+    "league": "",
+    "avg_top": 10
   }
 ]

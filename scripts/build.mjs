@@ -55,33 +55,36 @@ async function waitPrices(page, timeoutMs = 30000) {
   await page.waitForSelector(PRICE_CELLS, { timeout: timeoutMs });
 }
 
-// читает до 5 первых видимых цен
-async function readTop5(page) {
-  const items = await page.$$eval(PRICE_CELLS, nodes => {
-    const isVisible = (el) => {
-      const s = getComputedStyle(el);
-      if (s.visibility === "hidden" || s.display === "none") return false;
-      // offsetParent null — чаще всего скрыт
-      if (!el.offsetParent) return false;
-      return true;
-    };
-    const out = [];
-    for (const n of nodes) {
-      if (!isVisible(n)) continue;
-      const t = n.textContent || "";
-      out.push(t);
-      if (out.length >= 12) break; // небольшой буфер (бывает мусор вроде "шт" / "₽")
-    }
-    return out;
-  });
+// читает до N первых видимых трейдов (цена + количество)
+async function readTopN(page, n = 10) {
+  const items = await page.$$eval(
+    ".tc-table .tc-item:not(.lazyload-hidden), .showcase-table .tc-item:not(.lazyload-hidden)",
+    (nodes, limit) => {
+      const isVisible = (el) => {
+        const s = getComputedStyle(el);
+        if (s.visibility === "hidden" || s.display === "none") return false;
+        if (!el.offsetParent) return false;
+        return true;
+      };
+      const out = [];
+      for (const n of nodes) {
+        if (!isVisible(n)) continue;
+        const priceEl = n.querySelector(".tc-price");
+        const amountEl = n.querySelector(".tc-amount");
+        const price = priceEl ? priceEl.textContent.trim() : "";
+        const amount = amountEl ? amountEl.textContent.trim() : "";
+        out.push({ price, amount });
+        if (out.length >= limit) break;
+      }
+      return out;
+    },
+    n
+  );
 
-  // превращаем в числа, фильтруем и берём первые 5
-  const nums = items
-    .map(parsePrice)
-    .filter(v => v !== null && v >= 0)
-    .slice(0, 5);
-
-  return nums;
+  return items.map(item => ({
+    price: parsePrice(item.price),
+    amount: parsePrice(item.amount),
+  })).filter(item => item.price !== null && item.price > 0);
 }
 
 // кликаем/скрываем возможные баннеры согласия (если появятся)
@@ -130,11 +133,16 @@ async function parsePair(page, pair) {
   const result = {
     game: pair.game,
     currency: pair.currency,
+    display_name: pair.display_name || pair.game,
+    currency_name: pair.currency_name || pair.currency,
+    league: pair.league || "",
     price_RUB: 0,
     change_24h: null,
     change_7d: null,
     updated_at: null,
+    trades: [],
     trades_tops: [],
+    sellers: 0,
     error: null,
   };
 
@@ -177,24 +185,37 @@ async function parsePair(page, pair) {
     return result;
   }
 
-  // берём цены
-  let top5 = [];
+  // берём трейды
+  let trades = [];
   try {
-    top5 = await readTop5(page);
+    trades = await readTopN(page, pair.avg_top || 10);
   } catch (e) {
     result.error = `extract error: ${e?.message || e}`;
     await dumpDebug(page, pair.key, "extract-error");
     return result;
   }
 
+  // считаем продавцов
+  try {
+    const sellerCount = await page.$$eval(
+      ".tc-table .tc-item:not(.lazyload-hidden), .showcase-table .tc-item:not(.lazyload-hidden)",
+      nodes => nodes.filter(n => {
+        const s = getComputedStyle(n);
+        return s.visibility !== "hidden" && s.display !== "none" && n.offsetParent;
+      }).length
+    );
+    result.sellers = sellerCount;
+  } catch {}
+
   // если вдруг таблица пустая/фильтры — зафиксируем
-  if (!top5.length) {
+  if (!trades.length) {
     result.error = "Нет видимых цен";
     await dumpDebug(page, pair.key, "empty");
   }
 
-  result.trades_tops = top5;
-  result.price_RUB = top5.length ? top5[0] : 0;
+  result.trades = trades;
+  result.trades_tops = trades.map(t => t.price);
+  result.price_RUB = trades.length ? trades[0].price : 0;
   result.updated_at = nowIso();
   await dumpDebug(page, pair.key, "done");
   return result;
