@@ -55,50 +55,40 @@ const PRICE_CELLS =
   ".tc-table .tc-item:not(.lazyload-hidden) .tc-price, " +
   ".showcase-table .tc-item:not(.lazyload-hidden) .tc-price";
 
-// ждём появления хотя бы одной видимой цены С ТЕКСТОМ
+// ждём когда FunPay JS покажет items после выбора лиги
 async function waitPrices(page, timeoutMs = 40000) {
-  // Wait for price text to render (FunPay loads prices via JS after page load)
-  // First wait for any tc-item to exist
   await page.waitForSelector('.tc-item', { timeout: timeoutMs }).catch(() => {});
-  // Extra wait for JS rendering
-  await sleep(3000);
-  // Then check if prices have text
-  const hasPriceText = await page.evaluate(() => {
-    const prices = document.querySelectorAll('.tc-price');
-    for (const p of prices) {
-      const text = (p.innerText || p.textContent || '').trim();
-      if (text && /\d/.test(text)) return true;
-    }
-    return false;
-  });
-  if (!hasPriceText) {
-    // Wait longer for JS to render
-    await sleep(5000);
+  await sleep(2000);
+  try {
+    await page.waitForFunction(() => {
+      return document.querySelectorAll('.tc-item:not(.hidden)').length > 0;
+    }, { timeout: 15000 });
+  } catch {
+    await sleep(3000);
   }
+  await sleep(1500);
 }
 
-// читает до N первых видимых трейдов (цена + количество)
+// читает до N первых видимых трейдов (не hidden)
 async function readTopN(page, n = 10) {
   const items = await page.$$eval(
-    ".tc-table .tc-item:not(.lazyload-hidden), .showcase-table .tc-item:not(.lazyload-hidden)",
+    ".tc-item:not(.hidden)",
     (nodes, limit) => {
-      const isVisible = (el) => {
-        const s = getComputedStyle(el);
-        if (s.visibility === "hidden" || s.display === "none") return false;
-        if (!el.offsetParent) return false;
-        return true;
-      };
       const out = [];
       for (const node of nodes) {
-        if (!isVisible(node)) continue;
-        // Price: use innerText which includes JS-rendered content
         const priceEl = node.querySelector(".tc-price");
         const amountEl = node.querySelector(".tc-amount");
-        
-        const price = priceEl ? (priceEl.innerText || priceEl.textContent || "").trim() : "";
+        let price = "";
+        if (priceEl) {
+          const innerDiv = priceEl.querySelector("div");
+          if (innerDiv) {
+            price = (innerDiv.innerText || innerDiv.textContent || "").trim();
+          } else {
+            price = (priceEl.innerText || priceEl.textContent || "").trim();
+          }
+        }
         const amount = amountEl ? (amountEl.innerText || amountEl.textContent || "").trim() : "";
-        
-        if (!price && !amount) continue; // skip fully empty rows
+        if (!price && !amount) continue;
         out.push({ price, amount });
         if (out.length >= limit) break;
       }
@@ -106,11 +96,10 @@ async function readTopN(page, n = 10) {
     },
     n
   );
-
   return items.map(item => ({
     price: parsePrice(item.price) || 0,
     amount: parsePrice(item.amount) || 0,
-  })).filter(item => item.amount > 0 || item.price > 0);
+  })).filter(item => item.price > 0 || item.amount > 0);
 }
 
 // кликаем/скрываем возможные баннеры согласия (если появятся)
@@ -226,11 +215,8 @@ async function parsePair(page, pair) {
   // считаем продавцов
   try {
     const sellerCount = await page.$$eval(
-      ".tc-table .tc-item:not(.lazyload-hidden), .showcase-table .tc-item:not(.lazyload-hidden)",
-      nodes => nodes.filter(n => {
-        const s = getComputedStyle(n);
-        return s.visibility !== "hidden" && s.display !== "none" && n.offsetParent;
-      }).length
+      ".tc-item:not(.hidden)",
+      nodes => nodes.length
     );
     result.sellers = sellerCount;
   } catch {}
