@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-03-15T09:25:40.458Z",
+  "updated_at": "2026-03-15T09:34:00.184Z",
   "source": "funpay",
   "pairs": {
     "poe1:divine-orb": {
@@ -8,14 +8,66 @@
       "display_name": "Path of Exile 1",
       "currency_name": "Божественные сферы",
       "league": "(PC) Mirage",
-      "price_RUB": 0,
+      "price_RUB": 0.105,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": null,
-      "trades": [],
-      "trades_tops": [],
-      "sellers": 0,
-      "error": "waitForPrices timeout: page.waitForSelector: Timeout 35000ms exceeded.\nCall log:\n  - waiting for locator('.tc-table .tc-item:not(.lazyload-hidden) .tc-price, .showcase-table .tc-item:not(.lazyload-hidden) .tc-price') to be visible\n    74 × locator resolved to 215 elements. Proceeding with the first one: <div data-s=\"0\" class=\"tc-price\">…</div>\n"
+      "updated_at": "2026-03-15T09:31:17.528Z",
+      "trades": [
+        {
+          "price": 0.105,
+          "amount": 40
+        },
+        {
+          "price": 0.106,
+          "amount": 62
+        },
+        {
+          "price": 0.108,
+          "amount": 110
+        },
+        {
+          "price": 0.108,
+          "amount": 200
+        },
+        {
+          "price": 0.109,
+          "amount": 103
+        },
+        {
+          "price": 0.109,
+          "amount": 70
+        },
+        {
+          "price": 0.109,
+          "amount": 35
+        },
+        {
+          "price": 0.11,
+          "amount": 330
+        },
+        {
+          "price": 0.11,
+          "amount": 31
+        },
+        {
+          "price": 0.111,
+          "amount": 160
+        }
+      ],
+      "trades_tops": [
+        0.105,
+        0.106,
+        0.108,
+        0.108,
+        0.109,
+        0.109,
+        0.109,
+        0.11,
+        0.11,
+        0.111
+      ],
+      "sellers": 88,
+      "error": null
     },
     "poe2:divine-orb": {
       "game": "poe2",
@@ -23,63 +75,63 @@
       "display_name": "Path of Exile 2",
       "currency_name": "Божественные сферы",
       "league": "(PC) Mirage",
-      "price_RUB": 0.00179,
+      "price_RUB": 0.00157,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-03-15T09:23:49.762Z",
+      "updated_at": "2026-03-15T09:31:55.027Z",
       "trades": [
         {
-          "price": 0.00179,
+          "price": 0.00157,
           "amount": 3528
         },
         {
-          "price": 0.000016,
+          "price": 0.000014,
           "amount": 700
         },
         {
-          "price": 0.000016,
+          "price": 0.000014,
           "amount": 400
         },
         {
-          "price": 0.000016,
+          "price": 0.000014,
           "amount": 400
         },
         {
-          "price": 0.000031,
+          "price": 0.000027,
           "amount": 102286
         },
         {
-          "price": 0.000031,
+          "price": 0.000027,
           "amount": 2150000
         },
         {
-          "price": 0.000031,
+          "price": 0.000027,
           "amount": 700
         },
         {
-          "price": 0.000031,
+          "price": 0.000027,
           "amount": 6241669
         },
         {
-          "price": 0.000031,
+          "price": 0.000027,
           "amount": 1895000
         },
         {
-          "price": 0.000031,
+          "price": 0.000027,
           "amount": 75750
         }
       ],
       "trades_tops": [
-        0.00179,
-        0.000016,
-        0.000016,
-        0.000016,
-        0.000031,
-        0.000031,
-        0.000031,
-        0.000031,
-        0.000031,
-        0.000031
+        0.00157,
+        0.000014,
+        0.000014,
+        0.000014,
+        0.000027,
+        0.000027,
+        0.000027,
+        0.000027,
+        0.000027,
+        0.000027
       ],
       "sellers": 200,
       "error": null
@@ -90,14 +142,66 @@
       "display_name": "Last Epoch",
       "currency_name": "Золото",
       "league": "Beneath Ancient Skies (Standard)",
-      "price_RUB": 0,
+      "price_RUB": 0.28,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": null,
-      "trades": [],
-      "trades_tops": [],
-      "sellers": 0,
-      "error": "waitForPrices timeout: page.waitForSelector: Timeout 35000ms exceeded.\nCall log:\n  - waiting for locator('.tc-table .tc-item:not(.lazyload-hidden) .tc-price, .showcase-table .tc-item:not(.lazyload-hidden) .tc-price') to be visible\n    74 × locator resolved to 91 elements. Proceeding with the first one: <div data-s=\"0\" class=\"tc-price\">…</div>\n"
+      "updated_at": "2026-03-15T09:32:37.829Z",
+      "trades": [
+        {
+          "price": 0.28,
+          "amount": 6
+        },
+        {
+          "price": 0.37,
+          "amount": 95000
+        },
+        {
+          "price": 0.38,
+          "amount": 87999999
+        },
+        {
+          "price": 0.59,
+          "amount": 1
+        },
+        {
+          "price": 0.61,
+          "amount": 124
+        },
+        {
+          "price": 0.61,
+          "amount": 9928
+        },
+        {
+          "price": 0.63,
+          "amount": 9999999
+        },
+        {
+          "price": 0.67,
+          "amount": 2
+        },
+        {
+          "price": 0.69,
+          "amount": 1000000000
+        },
+        {
+          "price": 0.71,
+          "amount": 1000000000
+        }
+      ],
+      "trades_tops": [
+        0.28,
+        0.37,
+        0.38,
+        0.59,
+        0.61,
+        0.61,
+        0.63,
+        0.67,
+        0.69,
+        0.71
+      ],
+      "sellers": 19,
+      "error": null
     },
     "tli:flame-elementium": {
       "game": "tli",
@@ -105,63 +209,63 @@
       "display_name": "Torchlight: Infinite",
       "currency_name": "Элементиевое пламя",
       "league": "(EU) Outlaw Season",
-      "price_RUB": 0.00034,
+      "price_RUB": 0.00029,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-03-15T09:25:03.131Z",
+      "updated_at": "2026-03-15T09:33:14.660Z",
       "trades": [
         {
-          "price": 0.00034,
+          "price": 0.00029,
           "amount": 353981
         },
         {
-          "price": 0.00025,
+          "price": 0.00021,
           "amount": 26000
         },
         {
-          "price": 0.00026,
+          "price": 0.00023,
           "amount": 1735
         },
         {
-          "price": 0.00034,
+          "price": 0.00029,
           "amount": 353981
         },
         {
-          "price": 0.00034,
+          "price": 0.00029,
           "amount": 15000
         },
         {
-          "price": 0.00034,
+          "price": 0.00029,
           "amount": 40000
         },
         {
-          "price": 0.00034,
+          "price": 0.00029,
           "amount": 147000
         },
         {
-          "price": 0.00035,
+          "price": 0.00031,
           "amount": 85002355
         },
         {
-          "price": 0.00035,
+          "price": 0.00031,
           "amount": 86556289
         },
         {
-          "price": 0.00035,
+          "price": 0.00031,
           "amount": 86346289
         }
       ],
       "trades_tops": [
-        0.00034,
-        0.00025,
-        0.00026,
-        0.00034,
-        0.00034,
-        0.00034,
-        0.00034,
-        0.00035,
-        0.00035,
-        0.00035
+        0.00029,
+        0.00021,
+        0.00023,
+        0.00029,
+        0.00029,
+        0.00029,
+        0.00029,
+        0.00031,
+        0.00031,
+        0.00031
       ],
       "sellers": 166,
       "error": null
@@ -175,11 +279,11 @@
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": null,
+      "updated_at": "2026-03-15T09:34:00.017Z",
       "trades": [],
       "trades_tops": [],
       "sellers": 0,
-      "error": "waitForPrices timeout: page.waitForSelector: Timeout 35000ms exceeded.\nCall log:\n  - waiting for locator('.tc-table .tc-item:not(.lazyload-hidden) .tc-price, .showcase-table .tc-item:not(.lazyload-hidden) .tc-price') to be visible\n"
+      "error": "Нет видимых цен"
     }
   }
 }
