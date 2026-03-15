@@ -1,56 +1,185 @@
 {
-  "updated_at": "2026-03-15T08:41:38.327Z",
+  "updated_at": "2026-03-15T08:55:06.058Z",
   "source": "funpay",
   "pairs": {
     "poe1:divine-orb": {
       "game": "poe1",
       "currency": "divine-orb",
+      "display_name": "Path of Exile 1",
+      "currency_name": "Божественные сферы",
+      "league": "(PC) Mirage",
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-03-15T08:41:36.870Z",
+      "updated_at": null,
+      "trades": [],
       "trades_tops": [],
-      "error": "page.locator(...).first(...).catch is not a function"
+      "sellers": 0,
+      "error": "waitForPrices timeout: page.waitForSelector: Timeout 35000ms exceeded.\nCall log:\n  - waiting for locator('.tc-table .tc-item:not(.lazyload-hidden) .tc-price, .showcase-table .tc-item:not(.lazyload-hidden) .tc-price') to be visible\n    74 × locator resolved to 214 elements. Proceeding with the first one: <div data-s=\"0\" class=\"tc-price\">…</div>\n"
     },
     "poe2:divine-orb": {
       "game": "poe2",
       "currency": "divine-orb",
-      "price_RUB": 0,
+      "display_name": "Path of Exile 2",
+      "currency_name": "Божественные сферы",
+      "league": "(PC) Mirage",
+      "price_RUB": 0.0021,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-03-15T08:41:37.376Z",
-      "trades_tops": [],
-      "error": "page.locator(...).first(...).catch is not a function"
+      "updated_at": "2026-03-15T08:53:15.524Z",
+      "trades": [
+        {
+          "price": 0.0021,
+          "amount": 21015
+        },
+        {
+          "price": 0.000014,
+          "amount": 700
+        },
+        {
+          "price": 0.000014,
+          "amount": 400
+        },
+        {
+          "price": 0.000014,
+          "amount": 400
+        },
+        {
+          "price": 0.000027,
+          "amount": 102286
+        },
+        {
+          "price": 0.000027,
+          "amount": 2150000
+        },
+        {
+          "price": 0.000027,
+          "amount": 700
+        },
+        {
+          "price": 0.000027,
+          "amount": 6241669
+        },
+        {
+          "price": 0.000027,
+          "amount": 1895000
+        },
+        {
+          "price": 0.000027,
+          "amount": 116666
+        }
+      ],
+      "trades_tops": [
+        0.0021,
+        0.000014,
+        0.000014,
+        0.000014,
+        0.000027,
+        0.000027,
+        0.000027,
+        0.000027,
+        0.000027,
+        0.000027
+      ],
+      "sellers": 200,
+      "error": null
     },
     "le:gold": {
       "game": "le",
       "currency": "gold",
+      "display_name": "Last Epoch",
+      "currency_name": "Золото",
+      "league": "Beneath Ancient Skies (Standard)",
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-03-15T08:41:37.677Z",
+      "updated_at": null,
+      "trades": [],
       "trades_tops": [],
-      "error": "page.locator(...).first(...).catch is not a function"
+      "sellers": 0,
+      "error": "waitForPrices timeout: page.waitForSelector: Timeout 35000ms exceeded.\nCall log:\n  - waiting for locator('.tc-table .tc-item:not(.lazyload-hidden) .tc-price, .showcase-table .tc-item:not(.lazyload-hidden) .tc-price') to be visible\n    74 × locator resolved to 85 elements. Proceeding with the first one: <div data-s=\"0\" class=\"tc-price\">…</div>\n"
     },
     "tli:flame-elementium": {
       "game": "tli",
       "currency": "flame-elementium",
-      "price_RUB": 0,
+      "display_name": "Torchlight: Infinite",
+      "currency_name": "Элементиевое пламя",
+      "league": "(EU) Outlaw Season",
+      "price_RUB": 0.00029,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-03-15T08:41:38.056Z",
-      "trades_tops": [],
-      "error": "page.locator(...).first(...).catch is not a function"
+      "updated_at": "2026-03-15T08:54:28.778Z",
+      "trades": [
+        {
+          "price": 0.00029,
+          "amount": 353981
+        },
+        {
+          "price": 0.00023,
+          "amount": 1735
+        },
+        {
+          "price": 0.00029,
+          "amount": 353981
+        },
+        {
+          "price": 0.00029,
+          "amount": 15000
+        },
+        {
+          "price": 0.00029,
+          "amount": 40000
+        },
+        {
+          "price": 0.00029,
+          "amount": 147000
+        },
+        {
+          "price": 0.00031,
+          "amount": 85002355
+        },
+        {
+          "price": 0.00031,
+          "amount": 86556289
+        },
+        {
+          "price": 0.00031,
+          "amount": 86346289
+        },
+        {
+          "price": 0.00031,
+          "amount": 725001
+        }
+      ],
+      "trades_tops": [
+        0.00029,
+        0.00023,
+        0.00029,
+        0.00029,
+        0.00029,
+        0.00029,
+        0.00031,
+        0.00031,
+        0.00031,
+        0.00031
+      ],
+      "sellers": 160,
+      "error": null
     },
     "quinfall:gold": {
       "game": "quinfall",
       "currency": "gold",
+      "display_name": "The Quinfall",
+      "currency_name": "Золото",
+      "league": "",
       "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-03-15T08:41:38.290Z",
+      "updated_at": null,
+      "trades": [],
       "trades_tops": [],
-      "error": "page.locator(...).first(...).catch is not a function"
+      "sellers": 0,
+      "error": "waitForPrices timeout: page.waitForSelector: Timeout 35000ms exceeded.\nCall log:\n  - waiting for locator('.tc-table .tc-item:not(.lazyload-hidden) .tc-price, .showcase-table .tc-item:not(.lazyload-hidden) .tc-price') to be visible\n"
     }
   }
 }
