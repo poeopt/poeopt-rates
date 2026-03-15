@@ -35,6 +35,11 @@ async function dumpDebug(page, key, step = "") {
   try {
     await page.screenshot({ path: path.join(DEBUG_DIR, `${base}.png`), fullPage: true });
   } catch {}
+  // Dump first tc-item HTML for diagnostics
+  try {
+    const html = await page.$eval(".tc-item", el => el.outerHTML.substring(0, 2000));
+    await fs.writeFile(path.join(DEBUG_DIR, `${base}.html`), html, "utf-8");
+  } catch {}
 }
 
 // извлекаем числа из текстового узла с ценой
@@ -50,9 +55,19 @@ const PRICE_CELLS =
   ".tc-table .tc-item:not(.lazyload-hidden) .tc-price, " +
   ".showcase-table .tc-item:not(.lazyload-hidden) .tc-price";
 
-// ждём появления хотя бы одной видимой цены
+// ждём появления хотя бы одной видимой цены С ТЕКСТОМ
 async function waitPrices(page, timeoutMs = 30000) {
+  // Wait for elements to exist
   await page.waitForSelector(PRICE_CELLS, { timeout: timeoutMs });
+  // Then wait for price text to render (FunPay loads prices via JS)
+  await page.waitForFunction(() => {
+    const prices = document.querySelectorAll('.tc-price[data-s]');
+    for (const p of prices) {
+      const text = p.innerText || p.textContent;
+      if (text && text.trim() && /\d/.test(text)) return true;
+    }
+    return false;
+  }, { timeout: timeoutMs });
 }
 
 // читает до N первых видимых трейдов (цена + количество)
@@ -67,12 +82,16 @@ async function readTopN(page, n = 10) {
         return true;
       };
       const out = [];
-      for (const n of nodes) {
-        if (!isVisible(n)) continue;
-        const priceEl = n.querySelector(".tc-price");
-        const amountEl = n.querySelector(".tc-amount");
-        const price = priceEl ? priceEl.textContent.trim() : "";
-        const amount = amountEl ? amountEl.textContent.trim() : "";
+      for (const node of nodes) {
+        if (!isVisible(node)) continue;
+        // Price: use innerText which includes JS-rendered content
+        const priceEl = node.querySelector(".tc-price");
+        const amountEl = node.querySelector(".tc-amount");
+        
+        const price = priceEl ? (priceEl.innerText || priceEl.textContent || "").trim() : "";
+        const amount = amountEl ? (amountEl.innerText || amountEl.textContent || "").trim() : "";
+        
+        if (!price && !amount) continue; // skip fully empty rows
         out.push({ price, amount });
         if (out.length >= limit) break;
       }
@@ -82,9 +101,9 @@ async function readTopN(page, n = 10) {
   );
 
   return items.map(item => ({
-    price: parsePrice(item.price),
-    amount: parsePrice(item.amount),
-  })).filter(item => item.price !== null && item.price > 0);
+    price: parsePrice(item.price) || 0,
+    amount: parsePrice(item.amount) || 0,
+  })).filter(item => item.amount > 0 || item.price > 0);
 }
 
 // кликаем/скрываем возможные баннеры согласия (если появятся)
