@@ -278,7 +278,10 @@ async function parsePair(page, pair, exchangeRates) {
   if (rate !== 1) {
     console.log(`  💱 Converting ${detectedCurrency} → RUB (rate: ${rate})`);
     for (const t of trades) {
-      t.price = Math.round(t.price * rate * 100) / 100;
+      const converted = t.price * rate;
+      t.price = converted >= 1 
+        ? Math.round(converted * 100) / 100 
+        : Math.round(converted * 10000) / 10000;
     }
   }
 
