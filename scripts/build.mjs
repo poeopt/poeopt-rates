@@ -21,19 +21,32 @@ async function readMapping() {
   return JSON.parse(raw);
 }
 
-// Parse a price string like "9.94", "10 006", "3.36" into a number
+// Parse a price/amount string like "9.94", "10 006", "3.36", "120 кк" into a number
 function parsePrice(text) {
   if (!text) return null;
-  // Remove everything except digits, dots, commas, spaces
-  let n = text.replace(/[₽руб\s]/g, "").trim();
-  // Handle "10 006" -> "10006" (space as thousands separator)
-  n = n.replace(/\s/g, "");
-  // Handle comma as decimal separator
-  n = n.replace(",", ".");
+  let s = text.trim();
+  
+  // Handle "кк" suffix (millions) - e.g. "120 кк" = 120,000,000
+  let multiplier = 1;
+  if (/кк/i.test(s)) {
+    multiplier = 1000000;
+    s = s.replace(/\s*кк\s*/gi, "");
+  } else if (/к$/i.test(s)) {
+    multiplier = 1000;
+    s = s.replace(/\s*к\s*$/gi, "");
+  }
+  
+  // Remove currency symbols and unit text
+  s = s.replace(/[₽$руб]/g, "").trim();
+  // Remove spaces (thousands separator)
+  s = s.replace(/\s/g, "");
+  // Comma → dot
+  s = s.replace(",", ".");
   // Remove any remaining non-numeric chars except dot
-  n = n.replace(/[^0-9.]/g, "");
-  const v = parseFloat(n);
-  return Number.isFinite(v) && v > 0 ? v : null;
+  s = s.replace(/[^0-9.]/g, "");
+  
+  const v = parseFloat(s);
+  return Number.isFinite(v) && v > 0 ? v * multiplier : null;
 }
 
 // Screenshot + HTML dump for debugging
@@ -220,12 +233,19 @@ async function parsePair(page, pair) {
 
   // Parse trades
   const trades = [];
+  let detectedCurrency = "RUB";
   for (const raw of rawTrades) {
     const price = parsePrice(raw.price);
     const amount = parsePrice(raw.amount);
+    // Detect currency from HTML
+    if (raw.priceHTML && raw.priceHTML.includes("$")) detectedCurrency = "USD";
     if (price !== null && price > 0) {
       trades.push({ price, amount: amount || 0 });
     }
+  }
+  
+  if (detectedCurrency === "USD") {
+    console.log(`  ⚠ Prices in USD detected! Cookie cy=RUB may not have worked.`);
   }
 
   console.log(`  → Parsed ${trades.length} trades from ${rawTrades.length} raw items`);
@@ -278,6 +298,12 @@ async function main() {
   await ctx.addInitScript(() => {
     Object.defineProperty(navigator, 'webdriver', { get: () => false });
   });
+
+  // Force FunPay to show prices in RUB (by default shows USD for non-Russian IPs)
+  await ctx.addCookies([
+    { name: "cy", value: "RUB", domain: "funpay.com", path: "/" },
+    { name: "locale", value: "ru", domain: "funpay.com", path: "/" },
+  ]);
 
   const page = await ctx.newPage();
 
