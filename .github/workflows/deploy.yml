@@ -2,7 +2,7 @@ name: Build & Publish rates.json
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # каждые 15 минут
+    - cron: "0 * * * *"   # каждый час
   workflow_dispatch:
 
 permissions:
