@@ -56,18 +56,25 @@ const PRICE_CELLS =
   ".showcase-table .tc-item:not(.lazyload-hidden) .tc-price";
 
 // ждём появления хотя бы одной видимой цены С ТЕКСТОМ
-async function waitPrices(page, timeoutMs = 30000) {
-  // Wait for elements to exist
-  await page.waitForSelector(PRICE_CELLS, { timeout: timeoutMs });
-  // Then wait for price text to render (FunPay loads prices via JS)
-  await page.waitForFunction(() => {
-    const prices = document.querySelectorAll('.tc-price[data-s]');
+async function waitPrices(page, timeoutMs = 40000) {
+  // Wait for price text to render (FunPay loads prices via JS after page load)
+  // First wait for any tc-item to exist
+  await page.waitForSelector('.tc-item', { timeout: timeoutMs }).catch(() => {});
+  // Extra wait for JS rendering
+  await sleep(3000);
+  // Then check if prices have text
+  const hasPriceText = await page.evaluate(() => {
+    const prices = document.querySelectorAll('.tc-price');
     for (const p of prices) {
-      const text = p.innerText || p.textContent;
-      if (text && text.trim() && /\d/.test(text)) return true;
+      const text = (p.innerText || p.textContent || '').trim();
+      if (text && /\d/.test(text)) return true;
     }
     return false;
-  }, { timeout: timeoutMs });
+  });
+  if (!hasPriceText) {
+    // Wait longer for JS to render
+    await sleep(5000);
+  }
 }
 
 // читает до N первых видимых трейдов (цена + количество)
