@@ -95,10 +95,12 @@ async function closeBanners(page) {
     "button.fc-cta-consent",
   ];
   for (const sel of candidates) {
-    const has = await page.locator(sel).first().catch(() => null);
-    if (has && await has.count()) {
-      try { await has.click({ timeout: 1000 }); } catch {}
-    }
+    try {
+      const loc = page.locator(sel).first();
+      if (await loc.count()) {
+        await loc.click({ timeout: 2000 });
+      }
+    } catch {}
   }
 }
 
