@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-04-16T11:51:04.803Z",
+  "updated_at": "2026-04-16T13:00:07.494Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 75.23,
@@ -12,65 +12,65 @@
       "display_name": "Path of Exile 1",
       "currency_name": "Божественные сферы",
       "league": "(PC) Mirage",
-      "price_RUB": 1.34,
+      "price_RUB": 1.28,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-04-16T11:50:10.793Z",
+      "updated_at": "2026-04-16T12:59:13.347Z",
       "trades": [
+        {
+          "price": 1.28,
+          "amount": 537
+        },
+        {
+          "price": 1.3,
+          "amount": 350
+        },
+        {
+          "price": 1.32,
+          "amount": 500
+        },
+        {
+          "price": 1.34,
+          "amount": 617
+        },
         {
           "price": 1.34,
           "amount": 1
         },
         {
-          "price": 1.4,
-          "amount": 1000
+          "price": 1.35,
+          "amount": 461
         },
         {
-          "price": 1.41,
-          "amount": 1440
+          "price": 1.37,
+          "amount": 1770
         },
         {
-          "price": 1.43,
-          "amount": 828
+          "price": 1.38,
+          "amount": 4915
         },
         {
-          "price": 1.43,
-          "amount": 2745
+          "price": 1.38,
+          "amount": 8747
         },
         {
-          "price": 1.45,
-          "amount": 515
-        },
-        {
-          "price": 1.46,
-          "amount": 707
-        },
-        {
-          "price": 1.46,
-          "amount": 276
-        },
-        {
-          "price": 1.46,
-          "amount": 110
-        },
-        {
-          "price": 1.46,
-          "amount": 2150
+          "price": 1.38,
+          "amount": 1597
         }
       ],
       "trades_tops": [
+        1.28,
+        1.3,
+        1.32,
         1.34,
-        1.4,
-        1.41,
-        1.43,
-        1.43,
-        1.45,
-        1.46,
-        1.46,
-        1.46,
-        1.46
+        1.34,
+        1.35,
+        1.37,
+        1.38,
+        1.38,
+        1.38
       ],
-      "sellers": 112,
+      "sellers": 113,
       "error": null
     },
     "poe2:divine-orb": {
@@ -79,14 +79,14 @@
       "display_name": "Path of Exile 2",
       "currency_name": "Божественные сферы",
       "league": "Fate of the Vaal",
-      "price_RUB": 0.1068,
+      "price_RUB": 0.0012,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-04-16T11:50:19.509Z",
+      "updated_at": "2026-04-16T12:59:22.051Z",
       "trades": [
         {
-          "price": 0.1068,
-          "amount": 469457
+          "price": 0.0012,
+          "amount": 400
         },
         {
           "price": 0.0012,
@@ -126,7 +126,7 @@
         }
       ],
       "trades_tops": [
-        0.1068,
+        0.0012,
         0.0012,
         0.0012,
         0.0037,
@@ -149,7 +149,7 @@
       "price_RUB": 11.28,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-04-16T11:50:47.834Z",
+      "updated_at": "2026-04-16T12:59:50.421Z",
       "trades": [
         {
           "price": 11.28,
@@ -177,7 +177,7 @@
         },
         {
           "price": 147.45,
-          "amount": 819000527000000
+          "amount": 897374353000000
         },
         {
           "price": 199.36,
@@ -188,7 +188,7 @@
           "amount": 3000000
         },
         {
-          "price": 337.78,
+          "price": 338.54,
           "amount": 1000000
         }
       ],
@@ -202,7 +202,7 @@
         147.45,
         199.36,
         203.12,
-        337.78
+        338.54
       ],
       "sellers": 13,
       "error": null
@@ -216,7 +216,7 @@
       "price_RUB": 0.0166,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-04-16T11:50:56.225Z",
+      "updated_at": "2026-04-16T12:59:58.819Z",
       "trades": [
         {
           "price": 0.0166,
@@ -224,18 +224,18 @@
         },
         {
           "price": 0.0166,
-          "amount": 87999999
-        },
-        {
-          "price": 0.0181,
           "amount": 18807
         },
         {
-          "price": 0.0188,
+          "price": 0.0166,
+          "amount": 87999999
+        },
+        {
+          "price": 0.0196,
           "amount": 50000
         },
         {
-          "price": 0.0188,
+          "price": 0.0196,
           "amount": 87500
         },
         {
@@ -262,16 +262,16 @@
       "trades_tops": [
         0.0166,
         0.0166,
-        0.0181,
-        0.0188,
-        0.0188,
+        0.0166,
+        0.0196,
+        0.0196,
         0.0203,
         0.0203,
         0.0218,
         0.0218,
         0.0226
       ],
-      "sellers": 36,
+      "sellers": 35,
       "error": null
     },
     "quinfall:gold": {
@@ -280,22 +280,14 @@
       "display_name": "The Quinfall",
       "currency_name": "Золото",
       "league": "EU 1",
-      "price_RUB": 1.5,
+      "price_RUB": 1.58,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-04-16T11:51:04.555Z",
+      "updated_at": "2026-04-16T13:00:07.246Z",
       "trades": [
-        {
-          "price": 1.5,
-          "amount": 1500000000
-        },
         {
           "price": 1.58,
           "amount": 180000000
-        },
-        {
-          "price": 1.58,
-          "amount": 200000000
         },
         {
           "price": 1.66,
@@ -319,16 +311,22 @@
         },
         {
           "price": 1.66,
+          "amount": 200000000
+        },
+        {
+          "price": 1.66,
           "amount": 600000000
         },
         {
           "price": 1.66,
           "amount": 700000000
+        },
+        {
+          "price": 1.73,
+          "amount": 2000000000
         }
       ],
       "trades_tops": [
-        1.5,
-        1.58,
         1.58,
         1.66,
         1.66,
@@ -336,9 +334,11 @@
         1.66,
         1.66,
         1.66,
-        1.66
+        1.66,
+        1.66,
+        1.73
       ],
-      "sellers": 66,
+      "sellers": 65,
       "error": null
     }
   }
