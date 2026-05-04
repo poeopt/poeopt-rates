@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-04T21:51:54.065Z",
+  "updated_at": "2026-05-04T22:45:54.383Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 75.44,
@@ -12,18 +12,22 @@
       "display_name": "Path of Exile 1",
       "currency_name": "Божественные сферы",
       "league": "(PC) Mirage",
-      "price_RUB": 1.23,
+      "price_RUB": 1.24,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-04T21:51:00.200Z",
+      "updated_at": "2026-05-04T22:44:59.941Z",
       "trades": [
         {
-          "price": 1.23,
-          "amount": 8557
+          "price": 1.24,
+          "amount": 99999
         },
         {
           "price": 0.943,
           "amount": 1330
+        },
+        {
+          "price": 0.9505,
+          "amount": 1350
         },
         {
           "price": 0.9581,
@@ -35,15 +39,11 @@
         },
         {
           "price": 0.9656,
-          "amount": 2100
-        },
-        {
-          "price": 0.9656,
           "amount": 755
         },
         {
           "price": 1,
-          "amount": 1000
+          "amount": 1025
         },
         {
           "price": 1.06,
@@ -55,14 +55,14 @@
         },
         {
           "price": 1.06,
-          "amount": 1100
+          "amount": 82
         }
       ],
       "trades_tops": [
-        1.23,
+        1.24,
         0.943,
+        0.9505,
         0.9581,
-        0.9656,
         0.9656,
         0.9656,
         1,
@@ -70,7 +70,7 @@
         1.06,
         1.06
       ],
-      "sellers": 81,
+      "sellers": 83,
       "error": null
     },
     "poe2:divine-orb": {
@@ -79,15 +79,11 @@
       "display_name": "Path of Exile 2",
       "currency_name": "Божественные сферы",
       "league": "Fate of the Vaal",
-      "price_RUB": 0.1003,
+      "price_RUB": 0.0013,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-04T21:51:08.808Z",
+      "updated_at": "2026-05-04T22:45:08.715Z",
       "trades": [
-        {
-          "price": 0.1003,
-          "amount": 99999
-        },
         {
           "price": 0.0013,
           "amount": 418346
@@ -123,10 +119,13 @@
         {
           "price": 0.0075,
           "amount": 60000000
+        },
+        {
+          "price": 0.0075,
+          "amount": 200000
         }
       ],
       "trades_tops": [
-        0.1003,
         0.0013,
         0.0013,
         0.0013,
@@ -135,9 +134,10 @@
         0.005,
         0.0063,
         0.0075,
+        0.0075,
         0.0075
       ],
-      "sellers": 452,
+      "sellers": 448,
       "error": null
     },
     "le:gold": {
@@ -149,7 +149,7 @@
       "price_RUB": 27.91,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-04T21:51:37.111Z",
+      "updated_at": "2026-05-04T22:45:37.125Z",
       "trades": [
         {
           "price": 27.91,
@@ -181,7 +181,7 @@
         },
         {
           "price": 150.13,
-          "amount": 886744929000000
+          "amount": 810715588000000
         },
         {
           "price": 202.93,
@@ -216,7 +216,7 @@
       "price_RUB": 0.0219,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-04T21:51:45.459Z",
+      "updated_at": "2026-05-04T22:45:45.703Z",
       "trades": [
         {
           "price": 0.0219,
@@ -278,11 +278,11 @@
       "price_RUB": 1.96,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-04T21:51:53.821Z",
+      "updated_at": "2026-05-04T22:45:54.168Z",
       "trades": [
         {
           "price": 1.96,
-          "amount": 100000000
+          "amount": 150000000
         },
         {
           "price": 1.81,
@@ -290,11 +290,15 @@
         },
         {
           "price": 1.96,
-          "amount": 100000000
+          "amount": 150000000
         },
         {
           "price": 2.04,
           "amount": 2000000000
+        },
+        {
+          "price": 2.04,
+          "amount": 400000000
         },
         {
           "price": 2.04,
@@ -314,11 +318,7 @@
         },
         {
           "price": 2.04,
-          "amount": 2000000000
-        },
-        {
-          "price": 2.11,
-          "amount": 400000000
+          "amount": 3000000000
         }
       ],
       "trades_tops": [
@@ -331,7 +331,7 @@
         2.04,
         2.04,
         2.04,
-        2.11
+        2.04
       ],
       "sellers": 57,
       "error": null
