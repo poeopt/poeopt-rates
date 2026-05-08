@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-07T23:43:21.052Z",
+  "updated_at": "2026-05-08T01:48:20.620Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 74.62,
@@ -15,7 +15,7 @@
       "price_RUB": 1.23,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-07T23:41:46.997Z",
+      "updated_at": "2026-05-08T01:46:46.774Z",
       "trades": [
         {
           "price": 1.23,
@@ -28,14 +28,6 @@
         {
           "price": 1.04,
           "amount": 45
-        },
-        {
-          "price": 1.11,
-          "amount": 388
-        },
-        {
-          "price": 1.16,
-          "amount": 300
         },
         {
           "price": 1.17,
@@ -56,21 +48,29 @@
         {
           "price": 1.23,
           "amount": 2170
+        },
+        {
+          "price": 1.23,
+          "amount": 1200
+        },
+        {
+          "price": 1.23,
+          "amount": 7000
         }
       ],
       "trades_tops": [
         1.23,
         0.8059,
         1.04,
-        1.11,
-        1.16,
         1.17,
         1.19,
         1.2,
         1.21,
+        1.23,
+        1.23,
         1.23
       ],
-      "sellers": 70,
+      "sellers": 68,
       "error": null
     },
     "poe2:divine-orb": {
@@ -79,14 +79,14 @@
       "display_name": "Path of Exile 2",
       "currency_name": "Божественные сферы",
       "league": "Fate of the Vaal",
-      "price_RUB": 0.0125,
+      "price_RUB": 0.0933,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-07T23:41:55.662Z",
+      "updated_at": "2026-05-08T01:46:55.312Z",
       "trades": [
         {
-          "price": 0.0125,
-          "amount": 100000
+          "price": 0.0933,
+          "amount": 84332
         },
         {
           "price": 0.0013,
@@ -126,7 +126,7 @@
         }
       ],
       "trades_tops": [
-        0.0125,
+        0.0933,
         0.0013,
         0.0013,
         0.0013,
@@ -137,7 +137,7 @@
         0.0062,
         0.0075
       ],
-      "sellers": 462,
+      "sellers": 466,
       "error": null
     },
     "le:gold": {
@@ -149,7 +149,7 @@
       "price_RUB": 27.61,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-07T23:42:24.017Z",
+      "updated_at": "2026-05-08T01:47:23.594Z",
       "trades": [
         {
           "price": 27.61,
@@ -168,6 +168,10 @@
           "amount": 200000000
         },
         {
+          "price": 70.89,
+          "amount": 30000000
+        },
+        {
           "price": 75.37,
           "amount": 23000000
         },
@@ -181,15 +185,11 @@
         },
         {
           "price": 149.24,
-          "amount": 892146998000000
+          "amount": 875722236000000
         },
         {
           "price": 202.22,
           "amount": 1000000000000000
-        },
-        {
-          "price": 205.21,
-          "amount": 3000000
         }
       ],
       "trades_tops": [
@@ -197,14 +197,14 @@
         56.71,
         56.71,
         56.71,
+        70.89,
         75.37,
         114.17,
         122.38,
         149.24,
-        202.22,
-        205.21
+        202.22
       ],
-      "sellers": 15,
+      "sellers": 16,
       "error": null
     },
     "tli:flame-elementium": {
@@ -216,11 +216,15 @@
       "price_RUB": 0.0448,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-07T23:42:52.435Z",
+      "updated_at": "2026-05-08T01:47:52.028Z",
       "trades": [
         {
           "price": 0.0448,
           "amount": 1000000000
+        },
+        {
+          "price": 0.0463,
+          "amount": 185000
         },
         {
           "price": 0.0522,
@@ -257,6 +261,7 @@
       ],
       "trades_tops": [
         0.0448,
+        0.0463,
         0.0522,
         0.0851,
         0.0925,
@@ -266,7 +271,7 @@
         9.25,
         34.33
       ],
-      "sellers": 9,
+      "sellers": 10,
       "error": null
     },
     "quinfall:gold": {
@@ -278,7 +283,7 @@
       "price_RUB": 1.79,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-07T23:43:20.811Z",
+      "updated_at": "2026-05-08T01:48:20.373Z",
       "trades": [
         {
           "price": 1.79,
@@ -298,15 +303,7 @@
         },
         {
           "price": 1.87,
-          "amount": 8000000000
-        },
-        {
-          "price": 1.87,
           "amount": 1000000000
-        },
-        {
-          "price": 1.87,
-          "amount": 1500000000
         },
         {
           "price": 1.87,
@@ -318,7 +315,15 @@
         },
         {
           "price": 2.01,
+          "amount": 3000000000
+        },
+        {
+          "price": 2.01,
           "amount": 250000000
+        },
+        {
+          "price": 2.01,
+          "amount": 1000000000
         }
       ],
       "trades_tops": [
@@ -328,12 +333,12 @@
         1.87,
         1.87,
         1.87,
-        1.87,
-        1.87,
+        2.01,
+        2.01,
         2.01,
         2.01
       ],
-      "sellers": 54,
+      "sellers": 50,
       "error": null
     }
   }
