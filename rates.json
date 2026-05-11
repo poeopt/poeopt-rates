@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-11T22:45:17.983Z",
+  "updated_at": "2026-05-11T23:46:25.438Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 74.3,
@@ -12,14 +12,14 @@
       "display_name": "Path of Exile 1",
       "currency_name": "Божественные сферы",
       "league": "(PC) Mirage",
-      "price_RUB": 1.1,
+      "price_RUB": 1.25,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-11T22:43:43.923Z",
+      "updated_at": "2026-05-11T23:44:51.136Z",
       "trades": [
         {
-          "price": 1.1,
-          "amount": 839
+          "price": 1.25,
+          "amount": 99999
         },
         {
           "price": 0.847,
@@ -31,15 +31,11 @@
         },
         {
           "price": 1.03,
-          "amount": 3300
+          "amount": 600
         },
         {
           "price": 1.03,
           "amount": 50
-        },
-        {
-          "price": 1.03,
-          "amount": 400
         },
         {
           "price": 1.06,
@@ -47,30 +43,34 @@
         },
         {
           "price": 1.1,
-          "amount": 839
+          "amount": 300
         },
         {
           "price": 1.11,
           "amount": 350
         },
         {
-          "price": 1.11,
-          "amount": 1000
+          "price": 1.12,
+          "amount": 1500
+        },
+        {
+          "price": 1.12,
+          "amount": 3000
         }
       ],
       "trades_tops": [
-        1.1,
+        1.25,
         0.847,
         0.9956,
-        1.03,
         1.03,
         1.03,
         1.06,
         1.1,
         1.11,
-        1.11
+        1.12,
+        1.12
       ],
-      "sellers": 86,
+      "sellers": 81,
       "error": null
     },
     "poe2:divine-orb": {
@@ -79,14 +79,14 @@
       "display_name": "Path of Exile 2",
       "currency_name": "Божественные сферы",
       "league": "Fate of the Vaal",
-      "price_RUB": 0.0013,
+      "price_RUB": 0.0253,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-11T22:43:52.556Z",
+      "updated_at": "2026-05-11T23:44:59.900Z",
       "trades": [
         {
-          "price": 0.0013,
-          "amount": 400
+          "price": 0.0253,
+          "amount": 116185
         },
         {
           "price": 0.0013,
@@ -126,7 +126,7 @@
         }
       ],
       "trades_tops": [
-        0.0013,
+        0.0253,
         0.0013,
         0.0013,
         0.0038,
@@ -137,7 +137,7 @@
         0.0076,
         0.0076
       ],
-      "sellers": 483,
+      "sellers": 473,
       "error": null
     },
     "le:gold": {
@@ -149,7 +149,7 @@
       "price_RUB": 27.49,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-11T22:44:20.951Z",
+      "updated_at": "2026-05-11T23:45:28.323Z",
       "trades": [
         {
           "price": 27.49,
@@ -216,7 +216,7 @@
       "price_RUB": 0.0372,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-11T22:44:49.353Z",
+      "updated_at": "2026-05-11T23:45:56.759Z",
       "trades": [
         {
           "price": 0.0372,
@@ -251,12 +251,12 @@
           "amount": 999884202
         },
         {
-          "price": 1.38,
-          "amount": 500
-        },
-        {
           "price": 3.49,
           "amount": 2500
+        },
+        {
+          "price": 9.21,
+          "amount": 9994999
         }
       ],
       "trades_tops": [
@@ -268,10 +268,10 @@
         0.0936,
         0.1783,
         0.2749,
-        1.38,
-        3.49
+        3.49,
+        9.21
       ],
-      "sellers": 12,
+      "sellers": 11,
       "error": null
     },
     "quinfall:gold": {
@@ -283,7 +283,7 @@
       "price_RUB": 2.15,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-11T22:45:17.729Z",
+      "updated_at": "2026-05-11T23:46:25.218Z",
       "trades": [
         {
           "price": 2.15,
@@ -323,7 +323,7 @@
         },
         {
           "price": 2.45,
-          "amount": 600000000
+          "amount": 4250000000
         }
       ],
       "trades_tops": [
@@ -338,7 +338,7 @@
         2.38,
         2.45
       ],
-      "sellers": 51,
+      "sellers": 48,
       "error": null
     }
   }
