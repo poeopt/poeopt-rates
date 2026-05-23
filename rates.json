@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-23T22:42:04.201Z",
+  "updated_at": "2026-05-23T23:46:24.127Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 71.21,
@@ -15,7 +15,7 @@
       "price_RUB": 0.7976,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-23T22:40:21.428Z",
+      "updated_at": "2026-05-23T23:45:01.316Z",
       "trades": [
         {
           "price": 0.7976,
@@ -38,24 +38,24 @@
           "amount": 2137
         },
         {
+          "price": 0.9898,
+          "amount": 300
+        },
+        {
+          "price": 0.9898,
+          "amount": 1200
+        },
+        {
           "price": 0.9969,
           "amount": 1170
         },
         {
-          "price": 1,
-          "amount": 9000
-        },
-        {
-          "price": 1,
-          "amount": 8370
-        },
-        {
           "price": 1.04,
-          "amount": 700
+          "amount": 300
         },
         {
           "price": 1.05,
-          "amount": 2000
+          "amount": 2100
         }
       ],
       "trades_tops": [
@@ -64,13 +64,13 @@
         0.8545,
         0.9685,
         0.9898,
+        0.9898,
+        0.9898,
         0.9969,
-        1,
-        1,
         1.04,
         1.05
       ],
-      "sellers": 57,
+      "sellers": 55,
       "error": null
     },
     "poe2:divine-orb": {
@@ -82,7 +82,7 @@
       "price_RUB": 0.0012,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-23T22:40:30.319Z",
+      "updated_at": "2026-05-23T23:45:10.125Z",
       "trades": [
         {
           "price": 0.0012,
@@ -137,7 +137,7 @@
         0.0099,
         0.0099
       ],
-      "sellers": 466,
+      "sellers": 463,
       "error": null
     },
     "le:gold": {
@@ -149,7 +149,7 @@
       "price_RUB": 27.06,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-23T22:40:58.786Z",
+      "updated_at": "2026-05-23T23:45:38.690Z",
       "trades": [
         {
           "price": 27.06,
@@ -181,7 +181,7 @@
         },
         {
           "price": 148.12,
-          "amount": 857803507000000
+          "amount": 878451101000000
         },
         {
           "price": 200.81,
@@ -216,7 +216,7 @@
       "price_RUB": 0.0214,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-23T22:41:35.402Z",
+      "updated_at": "2026-05-23T23:46:15.308Z",
       "trades": [
         {
           "price": 0.0214,
@@ -228,15 +228,11 @@
         },
         {
           "price": 0.0228,
-          "amount": 80000
+          "amount": 40000
         },
         {
           "price": 0.0228,
-          "amount": 60000
-        },
-        {
-          "price": 0.0228,
-          "amount": 10000
+          "amount": 11000
         },
         {
           "price": 0.0242,
@@ -257,6 +253,10 @@
         {
           "price": 0.0242,
           "amount": 180000
+        },
+        {
+          "price": 0.0242,
+          "amount": 112000
         }
       ],
       "trades_tops": [
@@ -264,7 +264,7 @@
         0.0228,
         0.0228,
         0.0228,
-        0.0228,
+        0.0242,
         0.0242,
         0.0242,
         0.0242,
@@ -283,7 +283,7 @@
       "price_RUB": 1.71,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-23T22:42:03.960Z",
+      "updated_at": "2026-05-23T23:46:23.874Z",
       "trades": [
         {
           "price": 1.71,
@@ -296,10 +296,6 @@
         {
           "price": 1.78,
           "amount": 4500000000
-        },
-        {
-          "price": 1.78,
-          "amount": 700000000
         },
         {
           "price": 1.78,
@@ -324,6 +320,10 @@
         {
           "price": 1.92,
           "amount": 1000000000
+        },
+        {
+          "price": 1.92,
+          "amount": 1500000000
         }
       ],
       "trades_tops": [
@@ -334,11 +334,11 @@
         1.78,
         1.78,
         1.78,
-        1.78,
         1.85,
+        1.92,
         1.92
       ],
-      "sellers": 55,
+      "sellers": 54,
       "error": null
     }
   }
