@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-24T10:26:17.785Z",
+  "updated_at": "2026-05-24T11:58:27.183Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 71.21,
@@ -12,22 +12,18 @@
       "display_name": "Path of Exile 1",
       "currency_name": "Божественные сферы",
       "league": "(PC) Mirage",
-      "price_RUB": 0.7121,
+      "price_RUB": 0.8118,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-24T10:24:55.691Z",
+      "updated_at": "2026-05-24T11:57:04.466Z",
       "trades": [
         {
-          "price": 0.7121,
-          "amount": 650
-        },
-        {
-          "price": 0.7335,
-          "amount": 1000
-        },
-        {
           "price": 0.8118,
-          "amount": 503
+          "amount": 3
+        },
+        {
+          "price": 0.8545,
+          "amount": 570
         },
         {
           "price": 0.8545,
@@ -38,20 +34,24 @@
           "amount": 197
         },
         {
-          "price": 0.9186,
-          "amount": 500
+          "price": 0.9044,
+          "amount": 2300
         },
         {
-          "price": 0.9542,
+          "price": 0.9186,
           "amount": 300
+        },
+        {
+          "price": 0.9186,
+          "amount": 500
         },
         {
           "price": 0.9685,
           "amount": 260
         },
         {
-          "price": 0.9827,
-          "amount": 1600
+          "price": 0.9685,
+          "amount": 4000
         },
         {
           "price": 0.9898,
@@ -59,18 +59,18 @@
         }
       ],
       "trades_tops": [
-        0.7121,
-        0.7335,
         0.8118,
         0.8545,
+        0.8545,
+        0.9044,
         0.9044,
         0.9186,
-        0.9542,
+        0.9186,
         0.9685,
-        0.9827,
+        0.9685,
         0.9898
       ],
-      "sellers": 59,
+      "sellers": 63,
       "error": null
     },
     "poe2:divine-orb": {
@@ -79,15 +79,11 @@
       "display_name": "Path of Exile 2",
       "currency_name": "Божественные сферы",
       "league": "Fate of the Vaal",
-      "price_RUB": 0.0655,
+      "price_RUB": 0.0012,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-24T10:25:04.302Z",
+      "updated_at": "2026-05-24T11:57:13.134Z",
       "trades": [
-        {
-          "price": 0.0655,
-          "amount": 50000
-        },
         {
           "price": 0.0012,
           "amount": 400
@@ -123,10 +119,13 @@
         {
           "price": 0.0099,
           "amount": 30000
+        },
+        {
+          "price": 0.0099,
+          "amount": 1200
         }
       ],
       "trades_tops": [
-        0.0655,
         0.0012,
         0.0012,
         0.0037,
@@ -135,9 +134,10 @@
         0.0074,
         0.0074,
         0.0099,
+        0.0099,
         0.0099
       ],
-      "sellers": 473,
+      "sellers": 472,
       "error": null
     },
     "le:gold": {
@@ -149,7 +149,7 @@
       "price_RUB": 25.64,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-24T10:25:32.641Z",
+      "updated_at": "2026-05-24T11:57:41.531Z",
       "trades": [
         {
           "price": 25.64,
@@ -181,7 +181,7 @@
         },
         {
           "price": 148.12,
-          "amount": 816449705000000
+          "amount": 807422976000000
         },
         {
           "price": 200.81,
@@ -213,15 +213,11 @@
       "display_name": "Torchlight: Infinite",
       "currency_name": "Элементиевое пламя",
       "league": "(EU) Vorax Season",
-      "price_RUB": 0.0207,
+      "price_RUB": 0.0214,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-24T10:26:09.023Z",
+      "updated_at": "2026-05-24T11:58:17.996Z",
       "trades": [
-        {
-          "price": 0.0207,
-          "amount": 22000
-        },
         {
           "price": 0.0214,
           "amount": 60000
@@ -231,47 +227,51 @@
           "amount": 477
         },
         {
+          "price": 0.0214,
+          "amount": 11000
+        },
+        {
+          "price": 0.0214,
+          "amount": 11000
+        },
+        {
+          "price": 0.0214,
+          "amount": 2777
+        },
+        {
           "price": 0.0228,
           "amount": 578
         },
         {
           "price": 0.0228,
-          "amount": 73000
+          "amount": 70000
         },
         {
           "price": 0.0228,
-          "amount": 18000
+          "amount": 7000
         },
         {
           "price": 0.0228,
-          "amount": 75000
+          "amount": 100000
         },
         {
           "price": 0.0228,
-          "amount": 45000
-        },
-        {
-          "price": 0.0242,
-          "amount": 120000
-        },
-        {
-          "price": 0.0242,
-          "amount": 112000
+          "amount": 15000
         }
       ],
       "trades_tops": [
-        0.0207,
         0.0214,
         0.0214,
+        0.0214,
+        0.0214,
+        0.0214,
         0.0228,
         0.0228,
         0.0228,
         0.0228,
-        0.0228,
-        0.0242,
-        0.0242
+        0.0228
       ],
-      "sellers": 178,
+      "sellers": 181,
       "error": null
     },
     "quinfall:gold": {
@@ -283,7 +283,7 @@
       "price_RUB": 1.64,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-24T10:26:17.539Z",
+      "updated_at": "2026-05-24T11:58:26.938Z",
       "trades": [
         {
           "price": 1.64,
@@ -296,10 +296,6 @@
         {
           "price": 1.71,
           "amount": 390000000
-        },
-        {
-          "price": 1.71,
-          "amount": 450000000
         },
         {
           "price": 1.71,
@@ -324,6 +320,10 @@
         {
           "price": 1.78,
           "amount": 25000000000
+        },
+        {
+          "price": 1.78,
+          "amount": 500000000
         }
       ],
       "trades_tops": [
@@ -331,14 +331,14 @@
         1.71,
         1.71,
         1.71,
-        1.71,
+        1.78,
         1.78,
         1.78,
         1.78,
         1.78,
         1.78
       ],
-      "sellers": 62,
+      "sellers": 59,
       "error": null
     }
   }
