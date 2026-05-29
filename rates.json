@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-29T17:26:51.978Z",
+  "updated_at": "2026-05-29T20:06:58.673Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 71.02,
@@ -12,66 +12,14 @@
       "display_name": "Path of Exile 1",
       "currency_name": "Божественные сферы",
       "league": "(PC) Mirage",
-      "price_RUB": 0.9659,
+      "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-29T17:24:41.737Z",
-      "trades": [
-        {
-          "price": 0.9659,
-          "amount": 900
-        },
-        {
-          "price": 0.8096,
-          "amount": 1900
-        },
-        {
-          "price": 0.838,
-          "amount": 300
-        },
-        {
-          "price": 0.8664,
-          "amount": 2130
-        },
-        {
-          "price": 0.8735,
-          "amount": 2600
-        },
-        {
-          "price": 0.8878,
-          "amount": 9000
-        },
-        {
-          "price": 0.8949,
-          "amount": 1115
-        },
-        {
-          "price": 0.8949,
-          "amount": 1170
-        },
-        {
-          "price": 0.9091,
-          "amount": 873
-        },
-        {
-          "price": 0.9091,
-          "amount": 5800
-        }
-      ],
-      "trades_tops": [
-        0.9659,
-        0.8096,
-        0.838,
-        0.8664,
-        0.8735,
-        0.8878,
-        0.8949,
-        0.8949,
-        0.9091,
-        0.9091
-      ],
-      "sellers": 70,
-      "error": null
+      "updated_at": null,
+      "trades": [],
+      "trades_tops": [],
+      "sellers": 0,
+      "error": "No visible items after league selection"
     },
     "poe2:divine-orb": {
       "game": "poe2",
@@ -79,66 +27,14 @@
       "display_name": "Path of Exile 2",
       "currency_name": "Божественные сферы",
       "league": "Fate of the Vaal",
-      "price_RUB": 0.0122,
+      "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-29T17:25:18.457Z",
-      "trades": [
-        {
-          "price": 0.0122,
-          "amount": 280783
-        },
-        {
-          "price": 0.0073,
-          "amount": 99999
-        },
-        {
-          "price": 0.0098,
-          "amount": 99999
-        },
-        {
-          "price": 0.011,
-          "amount": 1
-        },
-        {
-          "price": 0.011,
-          "amount": 200000
-        },
-        {
-          "price": 0.0122,
-          "amount": 99999
-        },
-        {
-          "price": 0.0122,
-          "amount": 280783
-        },
-        {
-          "price": 0.0122,
-          "amount": 34000
-        },
-        {
-          "price": 0.0156,
-          "amount": 98899
-        },
-        {
-          "price": 0.0241,
-          "amount": 87991
-        }
-      ],
-      "trades_tops": [
-        0.0122,
-        0.0073,
-        0.0098,
-        0.011,
-        0.011,
-        0.0122,
-        0.0122,
-        0.0122,
-        0.0156,
-        0.0241
-      ],
-      "sellers": 858,
-      "error": null
+      "updated_at": null,
+      "trades": [],
+      "trades_tops": [],
+      "sellers": 0,
+      "error": "No visible items after league selection"
     },
     "le:gold": {
       "game": "le",
@@ -146,63 +42,63 @@
       "display_name": "Last Epoch",
       "currency_name": "Золото",
       "league": "Beneath Ancient Skies (Standard)",
-      "price_RUB": 25.57,
+      "price_RUB": 25.62,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-29T17:25:46.790Z",
+      "updated_at": "2026-05-29T20:05:26.858Z",
       "trades": [
         {
-          "price": 25.57,
+          "price": 25.62,
           "amount": 300000000
         },
         {
-          "price": 26.99,
+          "price": 26.44,
           "amount": 10000000000
         },
         {
-          "price": 60.37,
+          "price": 60.33,
           "amount": 100000000000
         },
         {
-          "price": 60.37,
+          "price": 60.33,
           "amount": 1000000000000
         },
         {
-          "price": 73.86,
+          "price": 73.55,
           "amount": 23000000
         },
         {
-          "price": 89.49,
+          "price": 89.25,
           "amount": 3000000
         },
         {
-          "price": 91.62,
+          "price": 90.9,
           "amount": 1000000000000000
         },
         {
-          "price": 112.21,
+          "price": 112.39,
           "amount": 9999967000000
         },
         {
-          "price": 116.47,
+          "price": 115.7,
           "amount": 6165876000000
         },
         {
-          "price": 146.3,
-          "amount": 836882476000000
+          "price": 146.27,
+          "amount": 840278667000000
         }
       ],
       "trades_tops": [
-        25.57,
-        26.99,
-        60.37,
-        60.37,
-        73.86,
-        89.49,
-        91.62,
-        112.21,
-        116.47,
-        146.3
+        25.62,
+        26.44,
+        60.33,
+        60.33,
+        73.55,
+        89.25,
+        90.9,
+        112.39,
+        115.7,
+        146.27
       ],
       "sellers": 17,
       "error": null
@@ -213,66 +109,14 @@
       "display_name": "Torchlight: Infinite",
       "currency_name": "Элементиевое пламя",
       "league": "(EU) Vorax Season",
-      "price_RUB": 0.0163,
+      "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-29T17:26:23.279Z",
-      "trades": [
-        {
-          "price": 0.0163,
-          "amount": 544
-        },
-        {
-          "price": 0.0206,
-          "amount": 987325996
-        },
-        {
-          "price": 0.0206,
-          "amount": 999308349
-        },
-        {
-          "price": 0.0206,
-          "amount": 999512410
-        },
-        {
-          "price": 0.0206,
-          "amount": 20000
-        },
-        {
-          "price": 0.0206,
-          "amount": 40000
-        },
-        {
-          "price": 0.0206,
-          "amount": 11019108
-        },
-        {
-          "price": 0.0206,
-          "amount": 14575153
-        },
-        {
-          "price": 0.0206,
-          "amount": 14702153
-        },
-        {
-          "price": 0.0206,
-          "amount": 50000
-        }
-      ],
-      "trades_tops": [
-        0.0163,
-        0.0206,
-        0.0206,
-        0.0206,
-        0.0206,
-        0.0206,
-        0.0206,
-        0.0206,
-        0.0206,
-        0.0206
-      ],
-      "sellers": 179,
-      "error": null
+      "updated_at": null,
+      "trades": [],
+      "trades_tops": [],
+      "sellers": 0,
+      "error": "No visible items after league selection"
     },
     "quinfall:gold": {
       "game": "quinfall",
@@ -280,66 +124,14 @@
       "display_name": "The Quinfall",
       "currency_name": "Золото",
       "league": "EU 1",
-      "price_RUB": 1.42,
+      "price_RUB": 0,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-05-29T17:26:51.721Z",
-      "trades": [
-        {
-          "price": 1.42,
-          "amount": 180000000
-        },
-        {
-          "price": 1.49,
-          "amount": 50000000
-        },
-        {
-          "price": 1.49,
-          "amount": 300000000
-        },
-        {
-          "price": 1.63,
-          "amount": 700000000
-        },
-        {
-          "price": 1.7,
-          "amount": 300000000
-        },
-        {
-          "price": 1.7,
-          "amount": 238000000
-        },
-        {
-          "price": 1.7,
-          "amount": 3500000000
-        },
-        {
-          "price": 1.78,
-          "amount": 1000000000
-        },
-        {
-          "price": 1.78,
-          "amount": 61000000000
-        },
-        {
-          "price": 1.85,
-          "amount": 99999999000000
-        }
-      ],
-      "trades_tops": [
-        1.42,
-        1.49,
-        1.49,
-        1.63,
-        1.7,
-        1.7,
-        1.7,
-        1.78,
-        1.78,
-        1.85
-      ],
-      "sellers": 56,
-      "error": null
+      "updated_at": null,
+      "trades": [],
+      "trades_tops": [],
+      "sellers": 0,
+      "error": "No visible items after league selection"
     }
   }
 }
