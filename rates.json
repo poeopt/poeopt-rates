@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-02T22:56:44.490Z",
+  "updated_at": "2026-07-02T23:55:30.606Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 77.93,
@@ -12,14 +12,14 @@
       "display_name": "Path of Exile 1",
       "currency_name": "Божественные сферы",
       "league": "(PC) Mirage",
-      "price_RUB": 1.21,
+      "price_RUB": 1.22,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-02T22:54:33.414Z",
+      "updated_at": "2026-07-02T23:53:20.008Z",
       "trades": [
         {
-          "price": 1.21,
-          "amount": 2450
+          "price": 1.22,
+          "amount": 9498
         },
         {
           "price": 0.9897,
@@ -38,6 +38,10 @@
           "amount": 600
         },
         {
+          "price": 1.01,
+          "amount": 1000
+        },
+        {
           "price": 1.03,
           "amount": 120
         },
@@ -52,25 +56,21 @@
         {
           "price": 1.1,
           "amount": 5950
-        },
-        {
-          "price": 1.11,
-          "amount": 5000
         }
       ],
       "trades_tops": [
-        1.21,
+        1.22,
         0.9897,
         0.9897,
+        1.01,
         1.01,
         1.01,
         1.03,
         1.03,
         1.07,
-        1.1,
-        1.11
+        1.1
       ],
-      "sellers": 54,
+      "sellers": 52,
       "error": null
     },
     "poe2:divine-orb": {
@@ -82,7 +82,7 @@
       "price_RUB": 0.0062,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-02T22:55:10.562Z",
+      "updated_at": "2026-07-02T23:53:57.121Z",
       "trades": [
         {
           "price": 0.0062,
@@ -114,7 +114,7 @@
         },
         {
           "price": 0.0075,
-          "amount": 200000
+          "amount": 195090
         },
         {
           "price": 0.0087,
@@ -137,7 +137,7 @@
         0.0087,
         0.0087
       ],
-      "sellers": 1860,
+      "sellers": 1782,
       "error": null
     },
     "le:gold": {
@@ -149,7 +149,7 @@
       "price_RUB": 27.28,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-02T22:55:39.076Z",
+      "updated_at": "2026-07-02T23:54:25.413Z",
       "trades": [
         {
           "price": 27.28,
@@ -168,10 +168,6 @@
           "amount": 50000000
         },
         {
-          "price": 100.53,
-          "amount": 1000000000000000
-        },
-        {
           "price": 114.56,
           "amount": 9999967000000
         },
@@ -181,15 +177,19 @@
         },
         {
           "price": 149.63,
-          "amount": 851865438000000
+          "amount": 815581697000000
         },
         {
-          "price": 201.84,
+          "price": 202.62,
           "amount": 1000000000000000
         },
         {
           "price": 205.74,
           "amount": 3000000
+        },
+        {
+          "price": 342.89,
+          "amount": 1000000
         }
       ],
       "trades_tops": [
@@ -197,14 +197,14 @@
         56.89,
         91.18,
         99.75,
-        100.53,
         114.56,
         127.81,
         149.63,
-        201.84,
-        205.74
+        202.62,
+        205.74,
+        342.89
       ],
-      "sellers": 15,
+      "sellers": 14,
       "error": null
     },
     "tli:flame-elementium": {
@@ -216,7 +216,7 @@
       "price_RUB": 0.0156,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-02T22:56:15.663Z",
+      "updated_at": "2026-07-02T23:55:01.876Z",
       "trades": [
         {
           "price": 0.0156,
@@ -271,7 +271,7 @@
         0.0171,
         0.0171
       ],
-      "sellers": 148,
+      "sellers": 137,
       "error": null
     },
     "quinfall:gold": {
@@ -283,7 +283,7 @@
       "price_RUB": 0.8183,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-02T22:56:44.239Z",
+      "updated_at": "2026-07-02T23:55:30.389Z",
       "trades": [
         {
           "price": 0.8183,
@@ -338,7 +338,7 @@
         1.39,
         1.41
       ],
-      "sellers": 46,
+      "sellers": 44,
       "error": null
     }
   }
