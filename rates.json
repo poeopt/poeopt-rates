@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-04T18:53:06.948Z",
+  "updated_at": "2026-07-04T20:05:00.023Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 77.23,
@@ -15,19 +15,23 @@
       "price_RUB": 0.9577,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-04T18:50:56.792Z",
+      "updated_at": "2026-07-04T20:02:49.613Z",
       "trades": [
         {
           "price": 0.9577,
           "amount": 910
         },
         {
-          "price": 0.9808,
+          "price": 0.9731,
           "amount": 1170
         },
         {
           "price": 0.9808,
-          "amount": 2050
+          "amount": 800
+        },
+        {
+          "price": 0.9808,
+          "amount": 1200
         },
         {
           "price": 1.02,
@@ -51,15 +55,12 @@
         },
         {
           "price": 1.1,
-          "amount": 1200
-        },
-        {
-          "price": 1.1,
           "amount": 100
         }
       ],
       "trades_tops": [
         0.9577,
+        0.9731,
         0.9808,
         0.9808,
         1.02,
@@ -67,10 +68,9 @@
         1.1,
         1.1,
         1.1,
-        1.1,
         1.1
       ],
-      "sellers": 51,
+      "sellers": 50,
       "error": null
     },
     "poe2:divine-orb": {
@@ -82,7 +82,7 @@
       "price_RUB": 0.0037,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-04T18:51:33.648Z",
+      "updated_at": "2026-07-04T20:03:26.549Z",
       "trades": [
         {
           "price": 0.0037,
@@ -102,10 +102,6 @@
         },
         {
           "price": 0.0062,
-          "amount": 12218
-        },
-        {
-          "price": 0.0062,
           "amount": 100000
         },
         {
@@ -121,8 +117,12 @@
           "amount": 23000
         },
         {
+          "price": 0.0062,
+          "amount": 12218
+        },
+        {
           "price": 0.0074,
-          "amount": 90000
+          "amount": 85000
         }
       ],
       "trades_tops": [
@@ -137,7 +137,7 @@
         0.0062,
         0.0074
       ],
-      "sellers": 1765,
+      "sellers": 1776,
       "error": null
     },
     "le:gold": {
@@ -149,7 +149,7 @@
       "price_RUB": 27.03,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-04T18:52:01.952Z",
+      "updated_at": "2026-07-04T20:03:54.923Z",
       "trades": [
         {
           "price": 27.03,
@@ -177,7 +177,7 @@
         },
         {
           "price": 149.05,
-          "amount": 845082167000000
+          "amount": 803651467000000
         },
         {
           "price": 201.57,
@@ -213,11 +213,15 @@
       "display_name": "Torchlight: Infinite",
       "currency_name": "Элементиевое пламя",
       "league": "(EU) Vorax Season",
-      "price_RUB": 0.0154,
+      "price_RUB": 0.017,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-04T18:52:38.334Z",
+      "updated_at": "2026-07-04T20:04:31.359Z",
       "trades": [
+        {
+          "price": 0.017,
+          "amount": 535073
+        },
         {
           "price": 0.0154,
           "amount": 976991763
@@ -251,25 +255,21 @@
           "amount": 51359997
         },
         {
-          "price": 0.017,
-          "amount": 535073
-        },
-        {
-          "price": 0.0178,
-          "amount": 9566583
+          "price": 0.0154,
+          "amount": 22600
         }
       ],
       "trades_tops": [
-        0.0154,
-        0.0154,
-        0.0154,
-        0.0154,
-        0.0154,
-        0.0154,
-        0.0154,
-        0.0154,
         0.017,
-        0.0178
+        0.0154,
+        0.0154,
+        0.0154,
+        0.0154,
+        0.0154,
+        0.0154,
+        0.0154,
+        0.0154,
+        0.0154
       ],
       "sellers": 152,
       "error": null
@@ -283,7 +283,7 @@
       "price_RUB": 1.2,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-04T18:53:06.724Z",
+      "updated_at": "2026-07-04T20:04:59.787Z",
       "trades": [
         {
           "price": 1.2,
@@ -338,7 +338,7 @@
         1.39,
         1.39
       ],
-      "sellers": 46,
+      "sellers": 44,
       "error": null
     }
   }
