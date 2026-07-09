@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-09T22:13:27.187Z",
+  "updated_at": "2026-07-09T23:58:31.807Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 75.93,
@@ -15,7 +15,7 @@
       "price_RUB": 0.9415,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-09T22:11:16.860Z",
+      "updated_at": "2026-07-09T23:56:20.739Z",
       "trades": [
         {
           "price": 0.9415,
@@ -39,7 +39,7 @@
         },
         {
           "price": 1.1,
-          "amount": 946
+          "amount": 711
         },
         {
           "price": 1.14,
@@ -54,7 +54,7 @@
           "amount": 1100
         },
         {
-          "price": 1.16,
+          "price": 1.18,
           "amount": 1000
         }
       ],
@@ -68,9 +68,9 @@
         1.14,
         1.16,
         1.16,
-        1.16
+        1.18
       ],
-      "sellers": 54,
+      "sellers": 49,
       "error": null
     },
     "poe2:divine-orb": {
@@ -82,16 +82,8 @@
       "price_RUB": 0.0037,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-09T22:11:53.721Z",
+      "updated_at": "2026-07-09T23:56:57.918Z",
       "trades": [
-        {
-          "price": 0.0037,
-          "amount": 1332
-        },
-        {
-          "price": 0.0037,
-          "amount": 48000
-        },
         {
           "price": 0.0037,
           "amount": 66000
@@ -99,10 +91,6 @@
         {
           "price": 0.0037,
           "amount": 42000
-        },
-        {
-          "price": 0.0049,
-          "amount": 3000
         },
         {
           "price": 0.0049,
@@ -123,21 +111,33 @@
         {
           "price": 0.0062,
           "amount": 5581
+        },
+        {
+          "price": 0.0062,
+          "amount": 5581
+        },
+        {
+          "price": 0.0062,
+          "amount": 12218
+        },
+        {
+          "price": 0.0062,
+          "amount": 11000
         }
       ],
       "trades_tops": [
         0.0037,
         0.0037,
-        0.0037,
-        0.0037,
-        0.0049,
         0.0049,
         0.0049,
         0.0049,
         0.0062,
+        0.0062,
+        0.0062,
+        0.0062,
         0.0062
       ],
-      "sellers": 1862,
+      "sellers": 1760,
       "error": null
     },
     "le:gold": {
@@ -149,7 +149,7 @@
       "price_RUB": 27.33,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-09T22:12:22.052Z",
+      "updated_at": "2026-07-09T23:57:26.274Z",
       "trades": [
         {
           "price": 27.33,
@@ -168,10 +168,6 @@
           "amount": 3000000
         },
         {
-          "price": 97.95,
-          "amount": 1000000000000000
-        },
-        {
           "price": 113.14,
           "amount": 9999967000000
         },
@@ -181,7 +177,7 @@
         },
         {
           "price": 148.06,
-          "amount": 889957212000000
+          "amount": 841199468000000
         },
         {
           "price": 200.46,
@@ -190,6 +186,10 @@
         {
           "price": 203.49,
           "amount": 3000000
+        },
+        {
+          "price": 339.41,
+          "amount": 1000000
         }
       ],
       "trades_tops": [
@@ -197,14 +197,14 @@
         39.48,
         56.19,
         90.36,
-        97.95,
         113.14,
         124.53,
         148.06,
         200.46,
-        203.49
+        203.49,
+        339.41
       ],
-      "sellers": 15,
+      "sellers": 14,
       "error": null
     },
     "tli:flame-elementium": {
@@ -216,7 +216,7 @@
       "price_RUB": 0.0159,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-09T22:12:58.455Z",
+      "updated_at": "2026-07-09T23:58:02.935Z",
       "trades": [
         {
           "price": 0.0159,
@@ -271,7 +271,7 @@
         0.0159,
         0.0159
       ],
-      "sellers": 159,
+      "sellers": 147,
       "error": null
     },
     "quinfall:gold": {
@@ -283,7 +283,7 @@
       "price_RUB": 1.18,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-09T22:13:26.935Z",
+      "updated_at": "2026-07-09T23:58:31.566Z",
       "trades": [
         {
           "price": 1.18,
@@ -338,7 +338,7 @@
         1.38,
         1.38
       ],
-      "sellers": 49,
+      "sellers": 47,
       "error": null
     }
   }
