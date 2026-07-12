@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-12T17:49:10.354Z",
+  "updated_at": "2026-07-12T18:46:00.382Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 76.66,
@@ -15,7 +15,7 @@
       "price_RUB": 1.17,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-12T17:47:20.077Z",
+      "updated_at": "2026-07-12T18:44:09.940Z",
       "trades": [
         {
           "price": 1.17,
@@ -38,10 +38,6 @@
           "amount": 350
         },
         {
-          "price": 1.04,
-          "amount": 500
-        },
-        {
           "price": 1.07,
           "amount": 5000
         },
@@ -56,6 +52,10 @@
         {
           "price": 1.17,
           "amount": 1000
+        },
+        {
+          "price": 1.17,
+          "amount": 200
         }
       ],
       "trades_tops": [
@@ -64,13 +64,13 @@
         0.9583,
         0.9583,
         0.9812,
-        1.04,
         1.07,
         1.1,
         1.13,
+        1.17,
         1.17
       ],
-      "sellers": 54,
+      "sellers": 53,
       "error": null
     },
     "poe2:divine-orb": {
@@ -82,7 +82,7 @@
       "price_RUB": 0.0025,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-12T17:47:56.865Z",
+      "updated_at": "2026-07-12T18:44:46.824Z",
       "trades": [
         {
           "price": 0.0025,
@@ -114,7 +114,7 @@
         },
         {
           "price": 0.005,
-          "amount": 57000
+          "amount": 8812
         },
         {
           "price": 0.005,
@@ -137,7 +137,7 @@
         0.005,
         0.0062
       ],
-      "sellers": 1798,
+      "sellers": 1813,
       "error": null
     },
     "le:gold": {
@@ -149,7 +149,7 @@
       "price_RUB": 27.6,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-12T17:48:25.195Z",
+      "updated_at": "2026-07-12T18:45:15.210Z",
       "trades": [
         {
           "price": 27.6,
@@ -213,14 +213,14 @@
       "display_name": "Torchlight: Infinite",
       "currency_name": "Элементиевое пламя",
       "league": "(EU) Vorax Season",
-      "price_RUB": 0.0169,
+      "price_RUB": 0.0133,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-12T17:49:01.627Z",
+      "updated_at": "2026-07-12T18:45:51.676Z",
       "trades": [
         {
-          "price": 0.0169,
-          "amount": 42973235
+          "price": 0.0133,
+          "amount": 95000
         },
         {
           "price": 0.0121,
@@ -260,7 +260,7 @@
         }
       ],
       "trades_tops": [
-        0.0169,
+        0.0133,
         0.0121,
         0.0121,
         0.0121,
@@ -283,7 +283,7 @@
       "price_RUB": 0.8203,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-12T17:49:10.107Z",
+      "updated_at": "2026-07-12T18:46:00.135Z",
       "trades": [
         {
           "price": 0.8203,
@@ -291,11 +291,11 @@
         },
         {
           "price": 1.07,
-          "amount": 2500000000
+          "amount": 6000000000
         },
         {
-          "price": 1.07,
-          "amount": 6000000000
+          "price": 1.1,
+          "amount": 15698000000
         },
         {
           "price": 1.1,
@@ -307,7 +307,7 @@
         },
         {
           "price": 1.17,
-          "amount": 2000000000
+          "amount": 3100000000
         },
         {
           "price": 1.19,
@@ -329,7 +329,7 @@
       "trades_tops": [
         0.8203,
         1.07,
-        1.07,
+        1.1,
         1.1,
         1.17,
         1.17,
@@ -338,7 +338,7 @@
         1.23,
         1.29
       ],
-      "sellers": 51,
+      "sellers": 50,
       "error": null
     }
   }
