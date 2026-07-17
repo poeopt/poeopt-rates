@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-17T04:52:19.898Z",
+  "updated_at": "2026-07-17T07:09:47.149Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 78.32,
@@ -15,27 +15,31 @@
       "price_RUB": 0.9242,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-17T04:50:28.981Z",
+      "updated_at": "2026-07-17T07:07:57.269Z",
       "trades": [
         {
           "price": 0.9242,
           "amount": 420
         },
         {
-          "price": 0.9477,
-          "amount": 800
-        },
-        {
           "price": 0.9633,
           "amount": 910
         },
         {
-          "price": 0.9633,
-          "amount": 1000
-        },
-        {
           "price": 0.9712,
           "amount": 1600
+        },
+        {
+          "price": 0.9947,
+          "amount": 750
+        },
+        {
+          "price": 0.9947,
+          "amount": 3000
+        },
+        {
+          "price": 1.01,
+          "amount": 1000
         },
         {
           "price": 1.03,
@@ -44,10 +48,6 @@
         {
           "price": 1.05,
           "amount": 762
-        },
-        {
-          "price": 1.06,
-          "amount": 3000
         },
         {
           "price": 1.07,
@@ -60,13 +60,13 @@
       ],
       "trades_tops": [
         0.9242,
-        0.9477,
-        0.9633,
         0.9633,
         0.9712,
+        0.9947,
+        0.9947,
+        1.01,
         1.03,
         1.05,
-        1.06,
         1.07,
         1.11
       ],
@@ -82,7 +82,7 @@
       "price_RUB": 0.0025,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-17T04:51:06.131Z",
+      "updated_at": "2026-07-17T07:08:34.011Z",
       "trades": [
         {
           "price": 0.0025,
@@ -137,7 +137,7 @@
         0.0062,
         0.0062
       ],
-      "sellers": 1781,
+      "sellers": 1800,
       "error": null
     },
     "le:gold": {
@@ -149,7 +149,7 @@
       "price_RUB": 27.41,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-17T04:51:34.477Z",
+      "updated_at": "2026-07-17T07:09:02.144Z",
       "trades": [
         {
           "price": 27.41,
@@ -213,18 +213,26 @@
       "display_name": "Torchlight: Infinite",
       "currency_name": "Элементиевое пламя",
       "league": "(EU) Vorax Season",
-      "price_RUB": 0.0157,
+      "price_RUB": 84.59,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-17T04:52:11.056Z",
+      "updated_at": "2026-07-17T07:09:38.512Z",
       "trades": [
+        {
+          "price": 84.59,
+          "amount": 4524522
+        },
+        {
+          "price": 0.0012,
+          "amount": 1000000000
+        },
         {
           "price": 0.0157,
           "amount": 130000
         },
         {
           "price": 0.018,
-          "amount": 125500
+          "amount": 1000000000
         },
         {
           "price": 0.0196,
@@ -233,10 +241,6 @@
         {
           "price": 0.0204,
           "amount": 162000
-        },
-        {
-          "price": 0.0219,
-          "amount": 1000000000
         },
         {
           "price": 0.0227,
@@ -253,25 +257,21 @@
         {
           "price": 0.0227,
           "amount": 424242
-        },
-        {
-          "price": 0.0227,
-          "amount": 371242
         }
       ],
       "trades_tops": [
+        84.59,
+        0.0012,
         0.0157,
         0.018,
         0.0196,
         0.0204,
-        0.0219,
-        0.0227,
         0.0227,
         0.0227,
         0.0227,
         0.0227
       ],
-      "sellers": 101,
+      "sellers": 130,
       "error": null
     },
     "quinfall:gold": {
@@ -283,7 +283,7 @@
       "price_RUB": 0.8224,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-07-17T04:52:19.653Z",
+      "updated_at": "2026-07-17T07:09:46.902Z",
       "trades": [
         {
           "price": 0.8224,
@@ -338,7 +338,7 @@
         1.14,
         1.14
       ],
-      "sellers": 47,
+      "sellers": 50,
       "error": null
     }
   }
