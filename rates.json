@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-04T23:54:13.604Z",
+  "updated_at": "2026-08-05T01:19:56.712Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 81.13,
@@ -15,7 +15,7 @@
       "price_RUB": 0.7951,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-08-04T23:52:04.259Z",
+      "updated_at": "2026-08-05T01:17:46.621Z",
       "trades": [
         {
           "price": 0.7951,
@@ -51,7 +51,7 @@
         },
         {
           "price": 0.9249,
-          "amount": 55000
+          "amount": 54300
         },
         {
           "price": 0.9492,
@@ -70,7 +70,7 @@
         0.9249,
         0.9492
       ],
-      "sellers": 277,
+      "sellers": 267,
       "error": null
     },
     "poe2:divine-orb": {
@@ -82,7 +82,7 @@
       "price_RUB": 0.0088,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-08-04T23:52:40.894Z",
+      "updated_at": "2026-08-05T01:18:23.489Z",
       "trades": [
         {
           "price": 0.0088,
@@ -106,10 +106,6 @@
         },
         {
           "price": 0.01,
-          "amount": 55718
-        },
-        {
-          "price": 0.01,
           "amount": 3000
         },
         {
@@ -123,6 +119,10 @@
         {
           "price": 0.0112,
           "amount": 10000
+        },
+        {
+          "price": 0.0112,
+          "amount": 3000
         }
       ],
       "trades_tops": [
@@ -134,10 +134,10 @@
         0.01,
         0.01,
         0.01,
-        0.01,
+        0.0112,
         0.0112
       ],
-      "sellers": 1725,
+      "sellers": 1642,
       "error": null
     },
     "le:gold": {
@@ -149,7 +149,7 @@
       "price_RUB": 19.47,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-08-04T23:53:08.949Z",
+      "updated_at": "2026-08-05T01:18:51.697Z",
       "trades": [
         {
           "price": 19.47,
@@ -166,10 +166,6 @@
         {
           "price": 47.06,
           "amount": 1000000000000
-        },
-        {
-          "price": 51.92,
-          "amount": 1000000000000000
         },
         {
           "price": 56.79,
@@ -189,7 +185,11 @@
         },
         {
           "price": 149.28,
-          "amount": 893520868000000
+          "amount": 854390741000000
+        },
+        {
+          "price": 206.07,
+          "amount": 3000000
         }
       ],
       "trades_tops": [
@@ -197,14 +197,14 @@
         21.91,
         27.58,
         47.06,
-        51.92,
         56.79,
         91.68,
         114.39,
         133.05,
-        149.28
+        149.28,
+        206.07
       ],
-      "sellers": 16,
+      "sellers": 15,
       "error": null
     },
     "tli:flame-elementium": {
@@ -216,7 +216,7 @@
       "price_RUB": 0.0012,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-08-04T23:53:45.167Z",
+      "updated_at": "2026-08-05T01:19:28.073Z",
       "trades": [
         {
           "price": 0.0012,
@@ -271,7 +271,7 @@
         0.0349,
         0.0365
       ],
-      "sellers": 194,
+      "sellers": 180,
       "error": null
     },
     "quinfall:gold": {
@@ -283,11 +283,15 @@
       "price_RUB": 0.8194,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-08-04T23:54:13.420Z",
+      "updated_at": "2026-08-05T01:19:56.456Z",
       "trades": [
         {
           "price": 0.8194,
           "amount": 800000000
+        },
+        {
+          "price": 0.8762,
+          "amount": 30028000000
         },
         {
           "price": 0.9005,
@@ -314,10 +318,6 @@
           "amount": 2399000000
         },
         {
-          "price": 0.9736,
-          "amount": 30028000000
-        },
-        {
           "price": 1.02,
           "amount": 44787000000
         },
@@ -328,9 +328,9 @@
       ],
       "trades_tops": [
         0.8194,
+        0.8762,
         0.9005,
         0.9249,
-        0.9736,
         0.9736,
         0.9736,
         0.9736,
@@ -338,7 +338,7 @@
         1.02,
         1.03
       ],
-      "sellers": 44,
+      "sellers": 42,
       "error": null
     }
   }
