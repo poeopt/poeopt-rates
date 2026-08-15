@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-15T03:32:00.804Z",
+  "updated_at": "2026-08-15T04:21:06.933Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 84.54,
@@ -42,14 +42,66 @@
       "display_name": "Last Epoch",
       "currency_name": "Золото",
       "league": "Beneath Ancient Skies (Standard)",
-      "price_RUB": 0,
+      "price_RUB": 21.98,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": null,
-      "trades": [],
-      "trades_tops": [],
-      "sellers": 0,
-      "error": "No visible items after league selection"
+      "updated_at": "2026-08-15T04:19:35.667Z",
+      "trades": [
+        {
+          "price": 21.98,
+          "amount": 1000000000000000
+        },
+        {
+          "price": 27.05,
+          "amount": 10000000000
+        },
+        {
+          "price": 47.34,
+          "amount": 1000000000000
+        },
+        {
+          "price": 56.64,
+          "amount": 8000000
+        },
+        {
+          "price": 91.3,
+          "amount": 3000000
+        },
+        {
+          "price": 114.13,
+          "amount": 9999967000000
+        },
+        {
+          "price": 138.65,
+          "amount": 6165876000000
+        },
+        {
+          "price": 149.64,
+          "amount": 856166812000000
+        },
+        {
+          "price": 342.39,
+          "amount": 1000000
+        },
+        {
+          "price": 342.39,
+          "amount": 9999968000000
+        }
+      ],
+      "trades_tops": [
+        21.98,
+        27.05,
+        47.34,
+        56.64,
+        91.3,
+        114.13,
+        138.65,
+        149.64,
+        342.39,
+        342.39
+      ],
+      "sellers": 13,
+      "error": null
     },
     "tli:flame-elementium": {
       "game": "tli",
