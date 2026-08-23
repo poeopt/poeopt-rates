@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-23T12:16:35.601Z",
+  "updated_at": "2026-08-23T13:26:21.912Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 82.92,
@@ -15,7 +15,7 @@
       "price_RUB": 0.8126,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-08-23T12:14:25.527Z",
+      "updated_at": "2026-08-23T13:24:11.750Z",
       "trades": [
         {
           "price": 0.8126,
@@ -23,7 +23,7 @@
         },
         {
           "price": 0.8292,
-          "amount": 1000
+          "amount": 370
         },
         {
           "price": 0.8375,
@@ -32,6 +32,10 @@
         {
           "price": 0.8375,
           "amount": 700
+        },
+        {
+          "price": 0.8375,
+          "amount": 880
         },
         {
           "price": 0.8375,
@@ -52,10 +56,6 @@
         {
           "price": 0.9038,
           "amount": 2480
-        },
-        {
-          "price": 0.9038,
-          "amount": 11100
         }
       ],
       "trades_tops": [
@@ -64,13 +64,13 @@
         0.8375,
         0.8375,
         0.8375,
+        0.8375,
         0.8624,
         0.8624,
         0.879,
-        0.9038,
         0.9038
       ],
-      "sellers": 253,
+      "sellers": 256,
       "error": null
     },
     "poe2:divine-orb": {
@@ -82,7 +82,7 @@
       "price_RUB": 0.0025,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-08-23T12:15:02.416Z",
+      "updated_at": "2026-08-23T13:24:48.656Z",
       "trades": [
         {
           "price": 0.0025,
@@ -106,10 +106,6 @@
         },
         {
           "price": 0.0087,
-          "amount": 11594
-        },
-        {
-          "price": 0.0087,
           "amount": 29577
         },
         {
@@ -119,6 +115,10 @@
         {
           "price": 0.01,
           "amount": 98308612
+        },
+        {
+          "price": 0.01,
+          "amount": 5000
         },
         {
           "price": 0.01,
@@ -133,11 +133,11 @@
         0.0087,
         0.0087,
         0.0087,
-        0.0087,
+        0.01,
         0.01,
         0.01
       ],
-      "sellers": 1734,
+      "sellers": 1713,
       "error": null
     },
     "le:gold": {
@@ -149,7 +149,7 @@
       "price_RUB": 21.56,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-08-23T12:15:30.683Z",
+      "updated_at": "2026-08-23T13:25:16.975Z",
       "trades": [
         {
           "price": 21.56,
@@ -158,6 +158,10 @@
         {
           "price": 27.36,
           "amount": 10000000000
+        },
+        {
+          "price": 39.8,
+          "amount": 100000000
         },
         {
           "price": 47.26,
@@ -186,25 +190,21 @@
         {
           "price": 204.81,
           "amount": 3000000
-        },
-        {
-          "price": 341.63,
-          "amount": 1000000
         }
       ],
       "trades_tops": [
         21.56,
         27.36,
+        39.8,
         47.26,
         53.07,
         57.21,
         114.43,
         135.99,
         149.26,
-        204.81,
-        341.63
+        204.81
       ],
-      "sellers": 14,
+      "sellers": 15,
       "error": null
     },
     "tli:flame-elementium": {
@@ -216,11 +216,15 @@
       "price_RUB": 0.0012,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-08-23T12:16:07.023Z",
+      "updated_at": "2026-08-23T13:25:53.332Z",
       "trades": [
         {
           "price": 0.0012,
           "amount": 1000000000
+        },
+        {
+          "price": 0.0109,
+          "amount": 145000
         },
         {
           "price": 0.0145,
@@ -240,38 +244,34 @@
         },
         {
           "price": 0.0348,
-          "amount": 52000
+          "amount": 12000
+        },
+        {
+          "price": 0.0348,
+          "amount": 10000
         },
         {
           "price": 0.0365,
-          "amount": 54000
+          "amount": 999999999
         },
         {
           "price": 0.0365,
-          "amount": 6076399
-        },
-        {
-          "price": 0.0365,
-          "amount": 18546884
-        },
-        {
-          "price": 0.0365,
-          "amount": 19324172
+          "amount": 999999999
         }
       ],
       "trades_tops": [
         0.0012,
+        0.0109,
         0.0145,
         0.0158,
         0.024,
         0.024,
         0.0348,
-        0.0365,
-        0.0365,
+        0.0348,
         0.0365,
         0.0365
       ],
-      "sellers": 207,
+      "sellers": 211,
       "error": null
     },
     "quinfall:gold": {
@@ -283,7 +283,7 @@
       "price_RUB": 0.796,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-08-23T12:16:35.361Z",
+      "updated_at": "2026-08-23T13:26:21.653Z",
       "trades": [
         {
           "price": 0.796,
