@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-16T06:57:51.235Z",
+  "updated_at": "2026-09-16T12:18:38.606Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 84.24,
@@ -12,21 +12,21 @@
       "display_name": "Path of Exile 1",
       "currency_name": "Божественные сферы",
       "league": "(PC) Mirage",
-      "price_RUB": 1.45,
+      "price_RUB": 1.22,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-16T06:55:41.447Z",
+      "updated_at": "2026-09-16T12:16:30.406Z",
       "trades": [
         {
-          "price": 1.45,
-          "amount": 99999
+          "price": 1.22,
+          "amount": 7000
         },
         {
-          "price": 0.9856,
+          "price": 0.9827,
           "amount": 800
         },
         {
-          "price": 1.06,
+          "price": 1.05,
           "amount": 125
         },
         {
@@ -38,6 +38,10 @@
           "amount": 12000
         },
         {
+          "price": 1.19,
+          "amount": 1100
+        },
+        {
           "price": 1.22,
           "amount": 2000
         },
@@ -46,31 +50,27 @@
           "amount": 1350
         },
         {
-          "price": 1.23,
-          "amount": 2000
-        },
-        {
-          "price": 1.23,
+          "price": 1.22,
           "amount": 7000
         },
         {
           "price": 1.23,
-          "amount": 3706
+          "amount": 2000
         }
       ],
       "trades_tops": [
-        1.45,
-        0.9856,
-        1.06,
+        1.22,
+        0.9827,
+        1.05,
         1.07,
         1.1,
+        1.19,
         1.22,
         1.22,
-        1.23,
-        1.23,
+        1.22,
         1.23
       ],
-      "sellers": 203,
+      "sellers": 221,
       "error": null
     },
     "poe2:divine-orb": {
@@ -82,7 +82,7 @@
       "price_RUB": 0.0024,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-16T06:56:18.396Z",
+      "updated_at": "2026-09-16T12:17:06.759Z",
       "trades": [
         {
           "price": 0.0024,
@@ -110,7 +110,7 @@
         },
         {
           "price": 0.0087,
-          "amount": 41268
+          "amount": 51577
         },
         {
           "price": 0.0099,
@@ -137,7 +137,7 @@
         0.0099,
         0.0099
       ],
-      "sellers": 2184,
+      "sellers": 2294,
       "error": null
     },
     "le:gold": {
@@ -146,65 +146,65 @@
       "display_name": "Last Epoch",
       "currency_name": "Золото",
       "league": "Beneath Ancient Skies (Standard)",
-      "price_RUB": 21.9,
+      "price_RUB": 21.41,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-16T06:56:46.552Z",
+      "updated_at": "2026-09-16T12:17:34.613Z",
       "trades": [
         {
-          "price": 21.9,
+          "price": 21.41,
           "amount": 1000000000000000
         },
         {
-          "price": 26.96,
+          "price": 27.24,
           "amount": 10000000000
         },
         {
-          "price": 47.17,
+          "price": 36,
+          "amount": 100000000
+        },
+        {
+          "price": 46.7,
           "amount": 1000000000000
         },
         {
-          "price": 113.72,
+          "price": 54.49,
+          "amount": 1000000000000000
+        },
+        {
+          "price": 56.43,
+          "amount": 8000000
+        },
+        {
+          "price": 113.84,
           "amount": 9999967000000
         },
         {
-          "price": 138.15,
+          "price": 138.17,
           "amount": 6165876000000
         },
         {
-          "price": 149.1,
-          "amount": 828913767000000
+          "price": 147.9,
+          "amount": 818556894000000
         },
         {
-          "price": 204.7,
+          "price": 204.33,
           "amount": 3000000
-        },
-        {
-          "price": 341.17,
-          "amount": 1000000
-        },
-        {
-          "price": 341.17,
-          "amount": 9999968000000
-        },
-        {
-          "price": 689.93,
-          "amount": 870663000000
         }
       ],
       "trades_tops": [
-        21.9,
-        26.96,
-        47.17,
-        113.72,
-        138.15,
-        149.1,
-        204.7,
-        341.17,
-        341.17,
-        689.93
+        21.41,
+        27.24,
+        36,
+        46.7,
+        54.49,
+        56.43,
+        113.84,
+        138.17,
+        147.9,
+        204.33
       ],
-      "sellers": 12,
+      "sellers": 15,
       "error": null
     },
     "tli:flame-elementium": {
@@ -213,30 +213,22 @@
       "display_name": "Torchlight: Infinite",
       "currency_name": "Элементиевое пламя",
       "league": "(EU) Vorax Season",
-      "price_RUB": 0.0158,
+      "price_RUB": 0.0157,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-16T06:57:22.859Z",
+      "updated_at": "2026-09-16T12:18:10.549Z",
       "trades": [
         {
-          "price": 0.0158,
+          "price": 0.0157,
           "amount": 1000000000
         },
         {
-          "price": 0.0158,
+          "price": 0.0157,
           "amount": 33000
         },
         {
-          "price": 0.0244,
+          "price": 0.0243,
           "amount": 78500
-        },
-        {
-          "price": 0.0244,
-          "amount": 101500
-        },
-        {
-          "price": 0.0253,
-          "amount": 8000
         },
         {
           "price": 0.0253,
@@ -244,34 +236,42 @@
         },
         {
           "price": 0.0253,
-          "amount": 56079
+          "amount": 32269
         },
         {
           "price": 0.0253,
-          "amount": 12000
+          "amount": 51500
         },
         {
-          "price": 0.0253,
-          "amount": 8000
-        },
-        {
-          "price": 0.027,
+          "price": 0.0263,
           "amount": 5815838
+        },
+        {
+          "price": 0.0263,
+          "amount": 17899634
+        },
+        {
+          "price": 0.0263,
+          "amount": 19193837
+        },
+        {
+          "price": 0.0263,
+          "amount": 347773
         }
       ],
       "trades_tops": [
-        0.0158,
-        0.0158,
-        0.0244,
-        0.0244,
+        0.0157,
+        0.0157,
+        0.0243,
         0.0253,
         0.0253,
         0.0253,
-        0.0253,
-        0.0253,
-        0.027
+        0.0263,
+        0.0263,
+        0.0263,
+        0.0263
       ],
-      "sellers": 171,
+      "sellers": 170,
       "error": null
     },
     "quinfall:gold": {
@@ -280,65 +280,65 @@
       "display_name": "The Quinfall",
       "currency_name": "Золото",
       "league": "EU 1",
-      "price_RUB": 0.7076,
+      "price_RUB": 0.7784,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-16T06:57:51.013Z",
+      "updated_at": "2026-09-16T12:18:38.448Z",
       "trades": [
         {
-          "price": 0.7076,
-          "amount": 3000000000
-        },
-        {
-          "price": 0.7076,
-          "amount": 33702000000
-        },
-        {
-          "price": 0.7666,
-          "amount": 800000000
-        },
-        {
-          "price": 0.7834,
+          "price": 0.7784,
           "amount": 6000000000
         },
         {
-          "price": 0.7919,
+          "price": 0.7881,
           "amount": 25000000000
         },
         {
-          "price": 0.8087,
+          "price": 0.8076,
           "amount": 197000000000
         },
         {
-          "price": 0.8087,
+          "price": 0.8076,
           "amount": 194296000000
         },
         {
-          "price": 0.8677,
+          "price": 0.8465,
+          "amount": 95000000000
+        },
+        {
+          "price": 0.8562,
+          "amount": 87999999000000
+        },
+        {
+          "price": 0.866,
           "amount": 800000000
         },
         {
-          "price": 0.8845,
+          "price": 0.8854,
           "amount": 35568000000
         },
         {
-          "price": 0.9351,
+          "price": 0.9146,
+          "amount": 33741000000
+        },
+        {
+          "price": 0.9341,
           "amount": 99975000000
         }
       ],
       "trades_tops": [
-        0.7076,
-        0.7076,
-        0.7666,
-        0.7834,
-        0.7919,
-        0.8087,
-        0.8087,
-        0.8677,
-        0.8845,
-        0.9351
+        0.7784,
+        0.7881,
+        0.8076,
+        0.8076,
+        0.8465,
+        0.8562,
+        0.866,
+        0.8854,
+        0.9146,
+        0.9341
       ],
-      "sellers": 41,
+      "sellers": 43,
       "error": null
     }
   }
