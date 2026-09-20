@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-20T01:56:24.333Z",
+  "updated_at": "2026-09-20T07:13:14.905Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 84.2,
@@ -12,11 +12,15 @@
       "display_name": "Path of Exile 1",
       "currency_name": "Божественные сферы",
       "league": "(PC) Mirage",
-      "price_RUB": 0.9599,
+      "price_RUB": 1.16,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-20T01:54:14.525Z",
+      "updated_at": "2026-09-20T07:11:06.035Z",
       "trades": [
+        {
+          "price": 1.16,
+          "amount": 890
+        },
         {
           "price": 0.9599,
           "amount": 5096
@@ -27,23 +31,11 @@
         },
         {
           "price": 1.04,
-          "amount": 3640
-        },
-        {
-          "price": 1.04,
           "amount": 7000
-        },
-        {
-          "price": 1.07,
-          "amount": 3700
         },
         {
           "price": 1.1,
           "amount": 4100
-        },
-        {
-          "price": 1.1,
-          "amount": 1000
         },
         {
           "price": 1.14,
@@ -51,26 +43,34 @@
         },
         {
           "price": 1.16,
-          "amount": 30000
+          "amount": 28500
         },
         {
           "price": 1.16,
           "amount": 890
+        },
+        {
+          "price": 1.16,
+          "amount": 700
+        },
+        {
+          "price": 1.17,
+          "amount": 500
         }
       ],
       "trades_tops": [
+        1.16,
         0.9599,
         0.9851,
         1.04,
-        1.04,
-        1.07,
-        1.1,
         1.1,
         1.14,
         1.16,
-        1.16
+        1.16,
+        1.16,
+        1.17
       ],
-      "sellers": 188,
+      "sellers": 183,
       "error": null
     },
     "poe2:divine-orb": {
@@ -82,7 +82,7 @@
       "price_RUB": 0.0074,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-20T01:54:51.508Z",
+      "updated_at": "2026-09-20T07:11:42.615Z",
       "trades": [
         {
           "price": 0.0074,
@@ -109,6 +109,10 @@
           "amount": 13500
         },
         {
+          "price": 0.0087,
+          "amount": 13705
+        },
+        {
           "price": 0.0099,
           "amount": 98003112
         },
@@ -119,10 +123,6 @@
         {
           "price": 0.0099,
           "amount": 4886
-        },
-        {
-          "price": 0.0099,
-          "amount": 36000
         }
       ],
       "trades_tops": [
@@ -132,12 +132,12 @@
         0.0087,
         0.0087,
         0.0087,
-        0.0099,
+        0.0087,
         0.0099,
         0.0099,
         0.0099
       ],
-      "sellers": 2255,
+      "sellers": 2193,
       "error": null
     },
     "le:gold": {
@@ -149,7 +149,7 @@
       "price_RUB": 21.89,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-20T01:55:19.620Z",
+      "updated_at": "2026-09-20T07:12:10.589Z",
       "trades": [
         {
           "price": 21.89,
@@ -216,7 +216,7 @@
       "price_RUB": 0.0157,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-20T01:55:55.929Z",
+      "updated_at": "2026-09-20T07:12:46.680Z",
       "trades": [
         {
           "price": 0.0157,
@@ -224,7 +224,7 @@
         },
         {
           "price": 0.0219,
-          "amount": 24479
+          "amount": 29300
         },
         {
           "price": 0.0227,
@@ -244,7 +244,7 @@
         },
         {
           "price": 0.0244,
-          "amount": 400000
+          "amount": 580000
         },
         {
           "price": 0.0244,
@@ -271,7 +271,7 @@
         0.0244,
         0.0253
       ],
-      "sellers": 142,
+      "sellers": 143,
       "error": null
     },
     "quinfall:gold": {
@@ -283,7 +283,7 @@
       "price_RUB": 0.6989,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-20T01:56:24.101Z",
+      "updated_at": "2026-09-20T07:13:14.686Z",
       "trades": [
         {
           "price": 0.6989,
@@ -338,7 +338,7 @@
         1.16,
         1.21
       ],
-      "sellers": 34,
+      "sellers": 29,
       "error": null
     }
   }
