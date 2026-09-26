@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-26T14:49:42.158Z",
+  "updated_at": "2026-09-26T18:10:03.644Z",
   "source": "funpay",
   "exchange_rates": {
     "USD": 84.34,
@@ -12,18 +12,26 @@
       "display_name": "Path of Exile 1",
       "currency_name": "Божественные сферы",
       "league": "(PC) Mirage",
-      "price_RUB": 1.77,
+      "price_RUB": 1.69,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-26T14:47:52.395Z",
+      "updated_at": "2026-09-26T18:08:14.621Z",
       "trades": [
         {
-          "price": 1.77,
-          "amount": 450
+          "price": 1.69,
+          "amount": 735
+        },
+        {
+          "price": 0.8603,
+          "amount": 6113
         },
         {
           "price": 0.9193,
-          "amount": 7000
+          "amount": 5666
+        },
+        {
+          "price": 0.9615,
+          "amount": 7942
         },
         {
           "price": 0.9868,
@@ -47,30 +55,22 @@
         },
         {
           "price": 1.1,
-          "amount": 2700
-        },
-        {
-          "price": 1.1,
-          "amount": 600
-        },
-        {
-          "price": 1.14,
-          "amount": 2517
+          "amount": 2400
         }
       ],
       "trades_tops": [
-        1.77,
+        1.69,
+        0.8603,
         0.9193,
+        0.9615,
         0.9868,
         0.9868,
         1,
         1.01,
         1.02,
-        1.1,
-        1.1,
-        1.14
+        1.1
       ],
-      "sellers": 203,
+      "sellers": 202,
       "error": null
     },
     "poe2:divine-orb": {
@@ -82,7 +82,7 @@
       "price_RUB": 0.0037,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-26T14:48:29.266Z",
+      "updated_at": "2026-09-26T18:08:51.302Z",
       "trades": [
         {
           "price": 0.0037,
@@ -98,11 +98,11 @@
         },
         {
           "price": 0.0037,
-          "amount": 119671
+          "amount": 251450
         },
         {
           "price": 0.0037,
-          "amount": 251450
+          "amount": 209671
         },
         {
           "price": 0.0074,
@@ -137,7 +137,7 @@
         0.0074,
         0.0087
       ],
-      "sellers": 2202,
+      "sellers": 2268,
       "error": null
     },
     "le:gold": {
@@ -149,7 +149,7 @@
       "price_RUB": 21.93,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-26T14:48:57.469Z",
+      "updated_at": "2026-09-26T18:09:19.363Z",
       "trades": [
         {
           "price": 21.93,
@@ -216,7 +216,7 @@
       "price_RUB": 0.0228,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-26T14:49:33.733Z",
+      "updated_at": "2026-09-26T18:09:55.455Z",
       "trades": [
         {
           "price": 0.0228,
@@ -236,7 +236,7 @@
         },
         {
           "price": 0.0202,
-          "amount": 145000
+          "amount": 47000
         },
         {
           "price": 0.0219,
@@ -252,7 +252,7 @@
         },
         {
           "price": 0.0219,
-          "amount": 2411780
+          "amount": 2309780
         },
         {
           "price": 0.0219,
@@ -283,7 +283,7 @@
       "price_RUB": 0.6916,
       "change_24h": null,
       "change_7d": null,
-      "updated_at": "2026-09-26T14:49:41.956Z",
+      "updated_at": "2026-09-26T18:10:03.486Z",
       "trades": [
         {
           "price": 0.6916,
@@ -300,6 +300,10 @@
         {
           "price": 0.7675,
           "amount": 184296000000
+        },
+        {
+          "price": 0.7928,
+          "amount": 1500000000
         },
         {
           "price": 0.8012,
@@ -320,10 +324,6 @@
         {
           "price": 0.8434,
           "amount": 95000000000
-        },
-        {
-          "price": 0.8518,
-          "amount": 87999999000000
         }
       ],
       "trades_tops": [
@@ -331,12 +331,12 @@
         0.7085,
         0.7591,
         0.7675,
+        0.7928,
         0.8012,
         0.8097,
         0.8181,
         0.8434,
-        0.8434,
-        0.8518
+        0.8434
       ],
       "sellers": 40,
       "error": null
